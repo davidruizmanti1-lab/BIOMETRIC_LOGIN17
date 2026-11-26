@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/routes/app_routes.dart';
 import '../controllers/auth_controller.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,42 +8,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthController>();
-
-    if (!auth.isAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.login,
-          (route) => false,
-        );
-      });
-
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('SecureApp'),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            tooltip: 'Cerrar sesión',
+            onPressed: context.read<AuthController>().logout,
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              auth.logout();
-
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.login,
-                (route) => false,
-              );
-            },
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
@@ -53,27 +23,15 @@ class HomeScreen extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.verified_user,
-                size: 100,
-                color: Colors.green,
-              ),
-              SizedBox(height: 24),
-              Text(
-                'Autenticación exitosa',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 12),
-              Text(
-                'Tu identidad fue verificada correctamente.',
-                textAlign: TextAlign.center,
-              ),
+              Icon(Icons.verified_user_outlined, size: 88, color: Color(0xFF24734D)),
+              SizedBox(height: 20),
+              Text('Acceso autorizado', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('Cuenta verificada y acceso registrado.', textAlign: TextAlign.center),
+              SizedBox(height: 8),
+              Text('Los datos de auditoría no se muestran en esta aplicación.', textAlign: TextAlign.center),
             ],
           ),
         ),

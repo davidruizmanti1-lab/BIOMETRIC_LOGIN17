@@ -49,4 +49,9 @@ app.*.map.json
 
 /android/build/
 
-/android/build/
+/secureapp.config.json
+/.env
+/.env.*
+*.jks
+*.keystore
+/android/key.properties

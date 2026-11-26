@@ -1,74 +1,96 @@
-
 import 'package:flutter/foundation.dart';
 
-import '../../domain/entities/auth_result.dart';
+import '../../domain/repositories/account_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthController extends ChangeNotifier {
   final AuthRepository _repository;
+  final AccountRepository _accounts;
+  final bool Function() _isForeground;
 
-  AuthController(this._repository);
+  AuthController(this._repository, this._accounts, {bool Function()? isForeground})
+    : _isForeground = isForeground ?? (() => true);
 
+  bool _initializing = true;
   bool _isLoading = false;
   bool _isAuthenticated = false;
   bool _isSupported = false;
   bool _hasBiometrics = false;
+  bool _checkingBiometrics = false;
+  int _revision = 0;
   String? _error;
 
+  bool get initializing => _initializing;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
   bool get isSupported => _isSupported;
   bool get hasBiometrics => _hasBiometrics;
+  bool get checkingBiometrics => _checkingBiometrics;
+  bool get isConfigured => _accounts.isConfigured;
   String? get error => _error;
 
   Future<void> init() async {
+    if (_isLoading) return;
     _isLoading = true;
-    _error = null;
     notifyListeners();
-
     try {
       _isSupported = await _repository.isDeviceSupported();
-      _hasBiometrics =
-          await _repository.hasEnrolledBiometrics();
+      _hasBiometrics = await _repository.hasEnrolledBiometrics();
     } catch (_) {
       _isSupported = false;
       _hasBiometrics = false;
     } finally {
+      _initializing = false;
       _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<bool> login({
+    required String email,
+    required String password,
     required bool biometricOnly,
   }) async {
-    if (_isLoading) return false;
+    if (_isLoading || _isAuthenticated) return false;
+    if (!isConfigured || email.trim().isEmpty || password.isEmpty) {
+      _error = !isConfigured ? 'Configura Supabase antes de ingresar.' : 'Completa tus credenciales.';
+      notifyListeners();
+      return false;
+    }
 
+    final revision = ++_revision;
     _isLoading = true;
     _error = null;
+    _checkingBiometrics = true;
     notifyListeners();
 
     try {
-      final AuthResult result =
-          await _repository.authenticate(
-        biometricOnly: biometricOnly,
-      );
-
-      _isAuthenticated = result.isSuccess;
-      _error = result.isSuccess ? null : result.message;
-
-      return result.isSuccess;
+      final result = await _repository.authenticate(biometricOnly: biometricOnly);
+      _checkingBiometrics = false;
+      if (revision != _revision) return false;
+      if (!result.isSuccess) {
+        _error = result.message ?? 'No se pudo verificar el dispositivo.';
+        return false;
+      }
+      await _accounts.registerAccess(email: email.trim(), password: password);
+      if (revision != _revision || !_isForeground()) return false;
+      _isAuthenticated = true;
+      return true;
+    } on AccountException catch (error) {
+      if (revision == _revision) _error = error.message;
+      return false;
     } catch (_) {
-      _isAuthenticated = false;
-      _error = 'Error inesperado al iniciar sesión';
+      if (revision == _revision) _error = 'No se pudo completar el acceso.';
       return false;
     } finally {
+      _checkingBiometrics = false;
       _isLoading = false;
       notifyListeners();
     }
   }
 
   void logout() {
+    _revision++;
     _isAuthenticated = false;
     _error = null;
     notifyListeners();
