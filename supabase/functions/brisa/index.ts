@@ -2,6 +2,29 @@
 const topics = ["reservar","precios","disponibilidad","pago","alojamientos","ubicacion","tours","fotos","servicios","persona","unknown"];
 const json = (body: object, status = 200) => new Response(JSON.stringify(body), { status, headers: {"Content-Type":"application/json","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"} });
 
+// Limita bytes antes de acumular toda la respuesta del proveedor.
+async function boundedText(response: Response, maxBytes: number): Promise<string|null> {
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8", {fatal: true});
+  let length = 0;
+  let text = "";
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) return text + decoder.decode();
+      length += value.byteLength;
+      if (length > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      text += decoder.decode(value, {stream: true});
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 async function question(req: Request): Promise<string|null> {
   if (!req.body || req.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") return null;
   const reader = req.body.getReader();
@@ -48,8 +71,8 @@ Deno.serve(async req => {
       ]}),
     });
     if (!ai.ok) return json({error:"model_unavailable"},503);
-    const raw = await ai.text();
-    if (raw.length > 32768) return json({error:"model_response"},502);
+    const raw = await boundedText(ai, 32768);
+    if (raw === null) return json({error:"model_response"},502);
     const result = JSON.parse(raw);
     const topic = result?.choices?.[0]?.message?.content?.trim();
     const selected = typeof topic === "string"

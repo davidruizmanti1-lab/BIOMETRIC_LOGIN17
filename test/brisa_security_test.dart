@@ -52,4 +52,29 @@ void main() {
     expect(repo.brisaAvailable, isFalse);
     expect(paths, contains('/rest/v1/rpc/velero2h_brisa_revoke'));
   });
+  test('Un acceso cancelado no registra sesión ni reactiva BRISA', () async {
+    final pending = Completer<http.Response>();
+    final started = Completer<void>();
+    final paths = <String>[];
+    final repo = SupabaseAccountRepository(
+      url: url, publishableKey: key, enableBrisa: true,
+      clientFactory: () => MockClient((request) async {
+        paths.add(request.url.path);
+        if (request.url.path == '/auth/v1/token') {
+          started.complete();
+          return pending.future;
+        }
+        return http.Response('', 204);
+      }),
+    );
+    final attempt = repo.registerAccess(email: 'test@example.com', password: 'test-only');
+    final assertion = expectLater(attempt, throwsA(isA<AccountException>()));
+    await started.future;
+    await repo.closeBrisaSession();
+    pending.complete(http.Response('{"access_token":"test-token"}', 200));
+    await assertion;
+    expect(repo.brisaAvailable, isFalse);
+    expect(paths, isNot(contains('/rest/v1/rpc/secureapp_register_access')));
+    expect(paths, contains('/auth/v1/logout'));
+  });
 }

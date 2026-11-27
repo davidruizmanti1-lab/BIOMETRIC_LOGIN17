@@ -44,3 +44,6 @@ BRISA muestra historial paginado de hasta 12 consultas por sesión, respuesta lo
 
 ## V2.6 Secure Luxury
 Límite de 64 KiB por respuesta HTTP del cliente, cancelación de consulta BRISA al cerrar sesión, rechazo de respuestas tardías, validación de host HTTPS exacto y control de primer plano antes del acceso remoto. Nueva migración de cuota con sesión registrada, revocación y vencimiento a 30 minutos (requiere despliegue). Se conserva biometría, FLAG_SECURE, prohibición de HTTP y configuración fuera de Git. No se han ejecutado pruebas físicas ni desplegado migraciones desde ChatGPT.
+
+## V2.6.1 — corrección crítica
+La ejecución 45918190349 informó 101 incidencias (incluidos avisos) y falló en análisis, no en ensamblado. La edición del patrón de host dejó una cadena incompleta y duplicó parte de SupabaseAccountRepository. Se reconstruyó una sola clase válida conservando el límite HTTP, revisión de sesión y cierre remoto. Nueva prueba de cancelación durante autenticación. No se ha confirmado el resultado de la nueva CI ni el despliegue de Supabase.
