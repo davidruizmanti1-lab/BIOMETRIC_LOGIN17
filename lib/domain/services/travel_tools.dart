@@ -22,5 +22,5 @@ abstract final class TravelTools {
     return List.generate(people, (i) => total ~/ people + (i < total % people ? 1 : 0));
   }
 
-  static String cop(int n) => '\$'+n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.')+' COP';
+  static String cop(int n) => '\${n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.')} COP';
 }

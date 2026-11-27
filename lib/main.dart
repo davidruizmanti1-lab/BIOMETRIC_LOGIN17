@@ -15,6 +15,7 @@ void main() {
         SupabaseAccountRepository(
           url: const String.fromEnvironment('SUPABASE_URL'),
           publishableKey: const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY'),
+          enableBrisa: const bool.fromEnvironment('VELERO2H_BRISA_AI'),
         ),
         isForeground: () => WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       ),

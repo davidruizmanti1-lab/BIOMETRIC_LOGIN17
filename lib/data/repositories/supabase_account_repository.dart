@@ -4,15 +4,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../domain/repositories/account_repository.dart';
+import '../../domain/repositories/brisa_session_repository.dart';
+import '../../domain/services/brisa_faq.dart';
 
-class SupabaseAccountRepository implements AccountRepository {
+class SupabaseAccountRepository implements AccountRepository, BrisaSessionRepository {
   final String url;
   final String publishableKey;
+  final bool enableBrisa;
+  String? _brisaToken;
   final http.Client Function() _clientFactory;
 
   SupabaseAccountRepository({
     required this.url,
     required this.publishableKey,
+    this.enableBrisa = false,
     http.Client Function()? clientFactory,
   }) : _clientFactory = clientFactory ?? http.Client.new;
 
@@ -61,6 +66,7 @@ class SupabaseAccountRepository implements AccountRepository {
       throw const AccountException('Configura la conexión a Supabase.');
     }
 
+    await closeBrisaSession();
     final client = _clientFactory();
     String? token;
     try {
@@ -94,6 +100,8 @@ class SupabaseAccountRepository implements AccountRepository {
       if (result.statusCode < 200 || result.statusCode >= 300) {
         throw const AccountException('No se pudo registrar el acceso.');
       }
+      // Sin IA, se mantiene el cierre de sesión del proyecto original.
+      if (enableBrisa) { _brisaToken = token; token = null; }
     } on TimeoutException {
       throw const AccountException('La conexión tardó demasiado. Intenta nuevamente.');
     } on http.ClientException {
@@ -108,5 +116,32 @@ class SupabaseAccountRepository implements AccountRepository {
       }
       client.close();
     }
+  }
+
+  @override
+  bool get brisaAvailable => enableBrisa && _brisaToken != null;
+
+  @override
+  Future<String?> askBrisa(String question) async {
+    final token = _brisaToken;
+    if (!enableBrisa || token == null || !BrisaFaq.safe(question)) return null;
+    final client = _clientFactory();
+    try {
+      final response = await _post(client, '/functions/v1/brisa', token: token, body: {'question': question});
+      if (response.statusCode != 200 || _brisaToken != token) return null;
+      final body = jsonDecode(response.body);
+      final topic = body is Map<String, dynamic> ? body['topic'] : null;
+      return topic is String ? topic : null;
+    } catch (_) { return null; } finally { client.close(); }
+  }
+
+  @override
+  Future<void> closeBrisaSession() async {
+    final token = _brisaToken;
+    _brisaToken = null;
+    if (token == null) return;
+    final client = _clientFactory();
+    try { await _post(client, '/auth/v1/logout?scope=local', token: token); }
+    catch (_) {} finally { client.close(); }
   }
 }

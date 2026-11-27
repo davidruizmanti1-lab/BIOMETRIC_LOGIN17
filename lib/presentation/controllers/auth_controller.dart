@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/repositories/account_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/brisa_session_repository.dart';
 
 class AuthController extends ChangeNotifier {
   final AuthRepository _repository;
@@ -28,6 +30,20 @@ class AuthController extends ChangeNotifier {
   bool get checkingBiometrics => _checkingBiometrics;
   bool get isConfigured => _accounts.isConfigured;
   String? get error => _error;
+  BrisaSessionRepository? get _brisa => _accounts is BrisaSessionRepository ? _accounts as BrisaSessionRepository : null;
+  bool get brisaAvailable => _isAuthenticated && (_brisa?.brisaAvailable ?? false);
+
+  Future<String?> askBrisa(String q) async {
+    if (!brisaAvailable || !_isForeground()) return null;
+    final revision = _revision;
+    final result = await _brisa?.askBrisa(q);
+    return revision == _revision && _isAuthenticated && _isForeground() ? result : null;
+  }
+
+  void _closeRemote() {
+    final brisa = _brisa;
+    if (brisa != null) unawaited(brisa.closeBrisaSession().catchError((Object _) {}));
+  }
 
   Future<void> init() async {
     if (_isLoading) return;
@@ -83,6 +99,7 @@ class AuthController extends ChangeNotifier {
       if (revision == _revision) _error = 'No se pudo completar el acceso.';
       return false;
     } finally {
+      if (!_isAuthenticated) _closeRemote();
       _checkingBiometrics = false;
       _isLoading = false;
       notifyListeners();
@@ -91,6 +108,7 @@ class AuthController extends ChangeNotifier {
 
   void logout() {
     _revision++;
+    _closeRemote();
     _isAuthenticated = false;
     _error = null;
     notifyListeners();

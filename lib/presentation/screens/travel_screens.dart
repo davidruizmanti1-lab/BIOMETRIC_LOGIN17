@@ -31,8 +31,8 @@ class _TripScreenState extends State<TripScreen> {
     if (_plan.isNotEmpty) {
       final day = _plan[_page];
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('Día '+(_page+1).toString()+' de '+_plan.length.toString(), style: Theme.of(context).textTheme.titleLarge),
-        Text('Presupuesto diario: '+TravelTools.cop(TravelTools.split(_total, _days)[_page])),
+        Text('Día ${_page + 1} de ${_plan.length}', style: Theme.of(context).textTheme.titleLarge),
+        Text('Presupuesto diario: ${TravelTools.cop(TravelTools.split(_total, _days)[_page])}'),
         const SizedBox(height: 8),
         Expanded(child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (!compact) const Icon(Icons.explore_outlined, size: 44, color: VeleroTheme.teal),
@@ -103,7 +103,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: VeleroTheme.ocean, borderRadius: BorderRadius.circular(22)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('PRESUPUESTO DE VIAJE', style: TextStyle(color: VeleroTheme.lightAqua, letterSpacing: 1, fontSize: 11)),
           Text(TravelTools.cop(total), style: const TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
-          Text('Por persona: '+TravelTools.cop(split.last)+(split.first != split.last ? ' – '+TravelTools.cop(split.first) : ''), style: const TextStyle(color: Colors.white)),
+          Text('Por persona: ${TravelTools.cop(split.last)}${split.first != split.last ? ' – ${TravelTools.cop(split.first)}' : ''}', style: const TextStyle(color: Colors.white)),
         ])),
         Row(children: [const Text('Viajeros'), const Spacer(),
           IconButton(tooltip: 'Quitar viajero', onPressed: _people > 1 ? () => setState(() => _people--) : null, icon: const Icon(Icons.remove_circle_outline)),
@@ -121,7 +121,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       Expanded(child: Card(child: Center(child: _expenses.isEmpty
         ? const Text('Aún no has registrado gastos.')
         : Column(mainAxisSize: MainAxisSize.min, children: [
-          Text((_page+1).toString()+'/'+_expenses.length.toString()+' · '+_expenses[_page].$1),
+          Text('${_page + 1}/${_expenses.length} · ${_expenses[_page].$1}'),
           Text(TravelTools.cop(_expenses[_page].$2), style: const TextStyle(fontWeight: FontWeight.bold)),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             IconButton(tooltip: 'Anterior', onPressed: _page > 0 ? () => setState(() => _page--) : null, icon: const Icon(Icons.chevron_left)),

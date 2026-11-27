@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
         child: LayoutBuilder(builder: (context, size) => Stack(fit: StackFit.expand, children: [
           _pane(0, CatalogScreen(onBrisa: () => setState(() => _tab = 4)), size.maxHeight),
-          if (_tab == 1) const VeleroMapScreen(),
+          if (_tab == 1) const VeleroMapScreen() else const SizedBox.shrink(),
           _pane(2, const TripScreen(), size.maxHeight),
           _pane(3, const BudgetScreen(), size.maxHeight),
           _pane(4, const BrisaScreen(), size.maxHeight),
@@ -132,7 +132,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             Image.asset(photo.asset, fit: BoxFit.contain, semanticLabel: photo.caption),
             Align(alignment: Alignment.centerLeft, child: IconButton.filledTonal(tooltip: 'Foto anterior', onPressed: () => setState(() => _index = (_index + photos.length - 1) % photos.length), icon: const Icon(Icons.chevron_left))),
             Align(alignment: Alignment.centerRight, child: IconButton.filledTonal(tooltip: 'Foto siguiente', onPressed: () => setState(() => _index = (_index + 1) % photos.length), icon: const Icon(Icons.chevron_right))),
-            Positioned(top: 8, right: 8, child: DecoratedBox(decoration: BoxDecoration(color: VeleroTheme.ocean, borderRadius: BorderRadius.circular(14)), child: Padding(padding: const EdgeInsets.all(8), child: Text((_index+1).toString()+'/'+photos.length.toString(), style: const TextStyle(color: Colors.white))))),
+            Positioned(top: 8, right: 8, child: DecoratedBox(decoration: BoxDecoration(color: VeleroTheme.ocean, borderRadius: BorderRadius.circular(14)), child: Padding(padding: const EdgeInsets.all(8), child: Text('${_index + 1}/${photos.length}', style: const TextStyle(color: Colors.white))))),
             Positioned(bottom: 0, left: 0, right: 0, child: ColoredBox(color: VeleroTheme.ocean.withValues(alpha: .9), child: Padding(padding: const EdgeInsets.all(10), child: Text(photo.caption, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white))))),
           ]),
         ),

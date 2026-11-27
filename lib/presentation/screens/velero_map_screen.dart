@@ -49,7 +49,7 @@ class _VeleroMapScreenState extends State<VeleroMapScreen> {
   Future<void> _route() async {
     final point = _points[_point].$2;
     try {
-      if (await launchUrl(Uri.https('www.google.com', '/maps/dir/', {'api':'1','destination':point.latitude.toString()+','+point.longitude.toString()}), mode: LaunchMode.externalApplication)) return;
+      if (await launchUrl(Uri.https('www.google.com', '/maps/dir/', {'api':'1','destination':'${point.latitude},${point.longitude}'}), mode: LaunchMode.externalApplication)) return;
     } catch (_) {}
     if (mounted) setState(() => _status = 'No fue posible abrir la ruta.');
   }
