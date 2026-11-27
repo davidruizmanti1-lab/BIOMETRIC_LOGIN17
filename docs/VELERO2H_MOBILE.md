@@ -66,3 +66,6 @@ Se distinguen errores de cuenta conocidos de rechazos HTTP de configuración, si
 
 ## V2.8.3 — configuración del proyecto
 Se confirmó que el equipo local apuntaba a un proyecto Supabase distinto. El punto de entrada de producción fija el host esperado y rechaza configuraciones de otro proyecto antes de enviar credenciales. El script Configurar-Supabase.ps1 comprueba Auth antes de guardar URL y clave publicable; conserva las otras opciones locales y una copia ignorada por Git. Se añade ejemplo sin claves y prueba de aislamiento. No se cambian usuarios, permisos ni migraciones. El acceso físico todavía debe verificarse.
+
+## V2.9 — Resort Luxury
+Cinco destinos de navegación: estadía, tours, viaje (itinerario y gastos), mapa y BRISA. Catálogo de cuatro experiencias a partir de los anuncios entregados, con tarifas indicativas, horarios y condiciones. BRISA usa los mismos datos locales antes de consultar IA; no confirma disponibilidad. Galería por espacios y fotografías optimizadas. Importar el ZIP multimedia con scripts/Importar-Resort.ps1; los recursos nuevos no son obligatorios para compilar, y no se simula que estén instalados. Se conserva seguridad y Supabase. Pruebas físicas y Groq pendientes.

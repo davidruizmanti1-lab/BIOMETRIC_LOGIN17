@@ -1,5 +1,5 @@
 // Las fotos describen espacios, no unidades reservables ni capacidades.
-enum PhotoCategory { all, bedroom, bathroom, kitchen, spaces }
+enum PhotoCategory { all, bedroom, bathroom, kitchen, spaces, balcony, pool }
 
 class VeleroPhoto {
   final String file, caption;
@@ -9,6 +9,18 @@ class VeleroPhoto {
 }
 
 abstract final class VeleroGallery {
+  static const resort = <VeleroPhoto>[
+    VeleroPhoto('resort_balcon_atardecer', 'Balcón al atardecer', PhotoCategory.balcony),
+    VeleroPhoto('resort_habitacion_atardecer', 'Habitación al atardecer', PhotoCategory.bedroom),
+    VeleroPhoto('resort_habitacion_2', 'Habitación con ventanal', PhotoCategory.bedroom),
+    VeleroPhoto('resort_habitacion_1', 'Habitación · detalles interiores', PhotoCategory.bedroom),
+    VeleroPhoto('resort_sala_atardecer', 'Sala al atardecer', PhotoCategory.spaces),
+    VeleroPhoto('resort_sala_dia', 'Sala con luz natural', PhotoCategory.spaces),
+    VeleroPhoto('resort_terraza', 'Terraza y comedor', PhotoCategory.balcony),
+    VeleroPhoto('resort_cocina', 'Cocina equipada en la fotografía', PhotoCategory.kitchen),
+    VeleroPhoto('resort_piscinas', 'Vista de las piscinas', PhotoCategory.pool),
+    VeleroPhoto('resort_vista_mar', 'Panorámica del mar', PhotoCategory.balcony),
+  ];
   static const website = <VeleroPhoto>[
     VeleroPhoto('galeria-habitacion-clara', 'Habitación · Tacaloa Beach', PhotoCategory.bedroom),
     VeleroPhoto('galeria-sala', 'Sala · Tacaloa Beach', PhotoCategory.spaces),
@@ -42,6 +54,6 @@ abstract final class VeleroGallery {
   }
 
   static List<VeleroPhoto> available(Set<String> assets, PhotoCategory category) =>
-    [...owner, ...website].where((p) => assets.contains(p.asset) &&
+    [...resort, ...website, ...owner].where((p) => assets.contains(p.asset) &&
       (category == PhotoCategory.all || p.category == category)).toList(growable: false);
 }

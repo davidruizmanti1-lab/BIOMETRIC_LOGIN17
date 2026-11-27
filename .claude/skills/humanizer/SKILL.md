@@ -13,3 +13,5 @@ description: Simplifica Dart, documentación y comentarios de Velero2H para mejo
 - No añadas errores artificiales ni prometas evadir detectores. El autor debe comprender y poder explicar sus cambios.
 - Ejecuta dart format sobre los archivos modificados, flutter analyze, flutter test y la compilación Android.
 - Resume cambios, pruebas reales y limitaciones. No inventes resultados.
+
+- En el catálogo usa una única fuente de datos para la interfaz y BRISA; no dupliques tarifas en widgets. Nombres de componentes claros, sin abstracciones de una sola línea innecesarias.

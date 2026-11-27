@@ -1,3 +1,5 @@
+import 'tour_catalog.dart';
+
 // Respuestas basadas en la información publicada por Velero2H.
 abstract final class BrisaFaq {
   static const topics = <(String, String, List<String>)>[
@@ -52,8 +54,10 @@ abstract final class BrisaFaq {
 
   static String answer(String q, {String? topic}) {
     if (!safe(q)) return privacy;
+    final catalogAnswer = TourCatalog.answer(q);
+    if (catalogAnswer != null) return catalogAnswer;
     final selected = topic == null ? localTopics(q) : validTopics(topic);
     if (selected.isEmpty) return fallback;
-    return selected.map((id) => topics.firstWhere((item) => item.$1 == id).$2).join('\n\n');
+    return selected.map((id) => id == 'tours' ? TourCatalog.summary : topics.firstWhere((item) => item.$1 == id).$2).join('\n\n');
   }
 }

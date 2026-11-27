@@ -19,3 +19,9 @@ description: Revisa y mejora pantallas Flutter de Velero2H con identidad Aqua Lu
 - Valida 360x640, 390x844 y teclado abierto; divide contenido en páginas, no ocultes acciones.
 - En BRISA diferencia IA confirmada, modo local, errores y espera; prueba respuestas largas y pérdida de red.
 - Conserva 48 dp para acciones principales y contraste legible. Evita texto minúsculo y verifica escala de texto ampliada.
+
+## Resort Luxury
+- Prioriza portada fotográfica real, tipografía editorial, márgenes de 16/24 dp, aqua y océano con acentos champaña.
+- Máximo cinco destinos principales; agrupa itinerario y gastos. Mantén acciones visibles con teclado, contraste y texto ampliado.
+- Tours: catálogo estructurado, detalles accesibles y precios con su unidad y aviso de vigencia. No inventes una foto, tarifa ni servicio.
+- BRISA: burbuja del usuario y respuesta de fondo claro, texto legible sin FittedBox, desplazamiento interno y fuentes explícitas.

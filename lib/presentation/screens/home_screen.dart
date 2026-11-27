@@ -8,6 +8,7 @@ import '../controllers/auth_controller.dart';
 import 'travel_screens.dart';
 import 'velero_map_screen.dart';
 import 'brisa_screen.dart';
+import 'tours_screen.dart';
 import '../widgets/velero_brand.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +19,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
+  final _visited = <int>{0};
+  String? _brisaPrompt;
+  int _brisaRevision = 0;
+
+  void _select(int i) {
+    FocusScope.of(context).unfocus();
+    setState(() { _tab = i; _visited.add(i); });
+  }
+
+  void _askBrisa(String prompt) {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _brisaPrompt = prompt;
+      _brisaRevision++;
+      _tab = 4;
+      _visited.add(4);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
@@ -27,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 8),
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Velero2H', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'serif', fontSize: 22)),
-          Text('AGENCIA DE TURISMO', style: TextStyle(color: VeleroTheme.teal, fontSize: 9, letterSpacing: 1.3)),
+          Text('RESORT · EXPERIENCIAS', style: TextStyle(color: VeleroTheme.teal, fontSize: 9, letterSpacing: 1.1)),
         ])),
       ]), actions: [
         IconButton(tooltip: 'Cerrar sesión', onPressed: context.read<AuthController>().logout, icon: const Icon(Icons.logout)),
@@ -35,36 +55,75 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
         child: LayoutBuilder(builder: (context, size) => Stack(fit: StackFit.expand, children: [
-          _pane(0, CatalogScreen(onBrisa: () => setState(() => _tab = 4)), size.maxHeight),
-          if (_tab == 1) const VeleroMapScreen() else const SizedBox.shrink(),
-          _pane(2, const TripScreen(), size.maxHeight),
-          _pane(3, const BudgetScreen(), size.maxHeight),
-          _pane(4, const BrisaScreen(), size.maxHeight),
+          _pane(0, CatalogScreen(onBrisa: () => _askBrisa('¿Qué alojamientos ofrecen?')), size.maxHeight),
+          _pane(1, ToursScreen(onBrisa: _askBrisa), size.maxHeight),
+          _pane(2, const TravelHub(), size.maxHeight),
+          if (_tab == 3) const VeleroMapScreen() else const SizedBox.shrink(),
+          _pane(4, BrisaScreen(suggestedQuestion: _brisaPrompt, suggestionRevision: _brisaRevision), size.maxHeight),
         ])),
       )),
       bottomNavigationBar: keyboard ? null : NavigationBar(
-        selectedIndex: _tab, height: 72,
-        onDestinationSelected: (i) { FocusScope.of(context).unfocus(); setState(() => _tab = i); },
+        selectedIndex: _tab, height: 72, onDestinationSelected: _select,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.hotel_outlined), label: 'Estadía'),
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
+          NavigationDestination(icon: Icon(Icons.sailing_outlined), label: 'Tours'),
           NavigationDestination(icon: Icon(Icons.event_note_outlined), label: 'Viaje'),
-          NavigationDestination(icon: Icon(Icons.wallet_outlined), label: 'Gastos'),
+          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
           NavigationDestination(icon: Icon(Icons.waves), label: 'BRISA'),
         ],
       ),
     );
   }
 
-  // Las herramientas mantienen su estado dentro de la sesión.
-  Widget _pane(int index, Widget child, double height) => Offstage(
-    offstage: _tab != index,
-    child: ExcludeFocus(excluding: _tab != index, child: TickerMode(enabled: _tab == index, child: OverflowBox(
-      minHeight: _tab == index ? height : 650,
-      maxHeight: _tab == index ? height : 650,
-      alignment: Alignment.topCenter, child: child,
-    ))),
-  );
+  // Solo se montan los módulos visitados; el mapa se libera al salir.
+  Widget _pane(int index, Widget child, double height) {
+    if (!_visited.contains(index)) return const SizedBox.shrink();
+    final active = _tab == index;
+    return Offstage(
+      offstage: !active,
+      child: ExcludeFocus(excluding: !active, child: TickerMode(enabled: active, child: OverflowBox(
+        minHeight: active ? height : 650,
+        maxHeight: active ? height : 650,
+        alignment: Alignment.topCenter, child: child,
+      ))),
+    );
+  }
+}
+
+class TravelHub extends StatefulWidget {
+  const TravelHub({super.key});
+  @override
+  State<TravelHub> createState() => _TravelHubState();
+}
+
+class _TravelHubState extends State<TravelHub> {
+  int _index = 0;
+  @override
+  Widget build(BuildContext context) {
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+    return Column(children: [
+      if (!keyboard) ...[
+        SizedBox(width: double.infinity, child: SegmentedButton<int>(
+          segments: const [
+            ButtonSegment(value: 0, icon: Icon(Icons.event_note_outlined), label: Text('Itinerario')),
+            ButtonSegment(value: 1, icon: Icon(Icons.wallet_outlined), label: Text('Gastos')),
+          ],
+          selected: {_index},
+          onSelectionChanged: (value) => setState(() => _index = value.first),
+        )),
+        const SizedBox(height: 8),
+      ],
+      Expanded(child: LayoutBuilder(builder: (context, box) => Stack(fit: StackFit.expand, children: [
+        for (final entry in const [(0, TripScreen()), (1, BudgetScreen())])
+          Offstage(offstage: _index != entry.$1,
+            child: ExcludeFocus(excluding: _index != entry.$1,
+              child: OverflowBox(
+                minHeight: _index == entry.$1 ? box.maxHeight : 650,
+                maxHeight: _index == entry.$1 ? box.maxHeight : 650,
+                alignment: Alignment.topCenter, child: entry.$2))),
+      ]))),
+    ]);
+  }
 }
 
 class CatalogScreen extends StatefulWidget {
@@ -78,7 +137,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   PhotoCategory _category = PhotoCategory.all;
   int _index = 0;
   Set<String> _assets = VeleroGallery.website.map((p) => p.asset).toSet();
-  static const _labels = ['Todas las fotos', 'Habitaciones', 'Baños', 'Cocinas', 'Otros espacios'];
+  static const _labels = ['Todos los espacios', 'Habitaciones', 'Baños', 'Cocinas', 'Salas', 'Balcones y vistas', 'Piscinas'];
 
   @override
   void initState() {
@@ -126,7 +185,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final photos = VeleroGallery.available(_assets, category);
     final photo = photos.isEmpty ? null : photos[_index % photos.length];
     return LayoutBuilder(builder: (context, box) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      if (box.maxHeight > 435) Container(
+      if (box.maxHeight > 540) Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
@@ -135,9 +194,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
         child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('SANTA MARTA  /  COLOMBIA', style: TextStyle(color: VeleroTheme.lightAqua, fontSize: 10, letterSpacing: 2)),
           SizedBox(height: 4),
-          Text('Tu escape al Caribe', style: TextStyle(fontSize: 26, color: Colors.white, fontFamily: 'serif', height: 1.05)),
+          Text('Tu refugio frente al mar', style: TextStyle(fontSize: 26, color: Colors.white, fontFamily: 'serif', height: 1.05)),
           SizedBox(height: 8),
-          Text('Estadías y experiencias a tu ritmo.', style: TextStyle(color: Colors.white, fontSize: 12)),
+          Text('Descubre cada espacio a tu ritmo.', style: TextStyle(color: Colors.white, fontSize: 12)),
           SizedBox(height: 9),
           SizedBox(width: 42, height: 2, child: ColoredBox(color: VeleroTheme.gold)),
         ]),
@@ -168,6 +227,28 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ]),
         ),
       )),
+      if (box.maxHeight > 520 && photos.length > 1) ...[
+        const SizedBox(height: 8),
+        SizedBox(height: 56, child: ListView.builder(
+          scrollDirection: Axis.horizontal, itemCount: photos.length,
+          itemBuilder: (context, i) => Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: InkWell(
+              onTap: () => setState(() => _index = i),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 68, padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: i == _index ? VeleroTheme.teal : VeleroTheme.water, width: 2)),
+                child: ClipRRect(borderRadius: BorderRadius.circular(7),
+                  child: Image.asset(photos[i].asset, fit: BoxFit.cover, cacheWidth: 180,
+                    semanticLabel: photos[i].caption,
+                    errorBuilder: (_, error, stack) => const Icon(Icons.image_not_supported_outlined))),
+              ),
+            ),
+          ),
+        )),
+      ],
       const SizedBox(height: 6),
       const Text('Fotografías reales · fechas por confirmar', style: TextStyle(fontSize: 11), textAlign: TextAlign.center),
       FilledButton.icon(onPressed: _open, icon: const Icon(Icons.calendar_month), label: const Text('Consultar alojamiento y fechas')),
