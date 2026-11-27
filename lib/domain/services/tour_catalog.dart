@@ -35,7 +35,7 @@ abstract final class TourCatalog {
       category: 'Naturaleza', hours: '09:00–17:30', price: 130000,
       perPerson: false,
       includes: ['Transporte', 'Guía', 'Seguro', 'Entrada', 'Almuerzo'],
-      optional: 'Snorkel por $35.000 COP, según anuncio',
+      optional: r'Snorkel por $35.000 COP, según anuncio',
     ),
     VeleroTour(
       id: 'velero_concha', title: 'Bahía Concha en velero',
