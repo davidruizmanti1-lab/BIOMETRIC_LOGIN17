@@ -10,6 +10,7 @@ class DeviceAuth implements AuthRepository {
   AuthResult result = const AuthResult(AuthStatus.success);
   int calls = 0;
   bool supportError = false;
+  bool enrolled = true;
   void Function()? onAuthenticate;
 
   @override
@@ -19,7 +20,7 @@ class DeviceAuth implements AuthRepository {
   }
 
   @override
-  Future<bool> hasEnrolledBiometrics() async => true;
+  Future<bool> hasEnrolledBiometrics() async => enrolled;
 
   @override
   Future<AuthResult> authenticate({required bool biometricOnly}) async {
@@ -140,5 +141,19 @@ void main() {
     foreground = true;
     expect(await attempt, isFalse);
     expect(accounts.calls, 0);
+  });
+  test('Detección negativa no sustituye la autenticación nativa', () async {
+    device.supportError = true;
+    device.enrolled = false;
+    await controller.init();
+    expect(controller.hasBiometrics, isFalse);
+    device.result = const AuthResult(AuthStatus.notEnrolled, 'Sin huella registrada');
+    expect(await login(), isFalse);
+    expect(device.calls, 1);
+    expect(accounts.calls, 0);
+    expect(controller.isAuthenticated, isFalse);
+    device.result = const AuthResult(AuthStatus.success);
+    expect(await login(), isTrue);
+    expect(accounts.calls, 1);
   });
 }

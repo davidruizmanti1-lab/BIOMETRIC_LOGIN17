@@ -1,7 +1,7 @@
 name: biometric_login
 description: Velero2H - alojamientos y experiencias en Santa Marta
 publish_to: 'none'
-version: 2.7.0+11
+version: 2.7.1+12
 environment:
   sdk: ">=3.10.0 <4.0.0"
   flutter: ">=3.38.0"

@@ -36,11 +36,7 @@ class BiometricAuthRepository implements AuthRepository {
   @override
   Future<AuthResult> authenticate({required bool biometricOnly}) async {
     try {
-      // El diálogo nativo es la fuente de verdad: evita rechazar el acceso
-      // por una consulta de capacidades desactualizada.
-      if (biometricOnly && !await hasEnrolledBiometrics()) {
-        return const AuthResult(AuthStatus.notEnrolled, AppStrings.notEnrolled);
-      }
+      // La autenticación nativa decide; la detección previa es orientativa.
       final ok = await _auth.authenticate(
         localizedReason: AppStrings.authReason,
         biometricOnly: biometricOnly,
