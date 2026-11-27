@@ -47,3 +47,7 @@ Límite de 64 KiB por respuesta HTTP del cliente, cancelación de consulta BRISA
 
 ## V2.6.1 — corrección crítica
 La ejecución 45918190349 informó 101 incidencias (incluidos avisos) y falló en análisis, no en ensamblado. La edición del patrón de host dejó una cadena incompleta y duplicó parte de SupabaseAccountRepository. Se reconstruyó una sola clase válida conservando el límite HTTP, revisión de sesión y cierre remoto. Nueva prueba de cancelación durante autenticación. No se ha confirmado el resultado de la nueva CI ni el despliegue de Supabase.
+
+## V2.7 — biometría y accesibilidad
+La CI V2.6.1 terminó correctamente, incluido APK. V2.7 separa las consultas de soporte y enrolamiento; tolera hasta 2 segundos de transición del diálogo biométrico al estado resumed después de una verificación local exitosa. Cerrar sesión invalida la espera. No se elimina la autenticación local ni la comprobación Supabase. El login permite desplazamiento solo cuando el contenido no cabe, para evitar pérdida de botones con teclado o texto ampliado. Tres nuevas pruebas de controlador simuladas. Falta prueba física.
+BRISA está desplegada en el proyecto velero2hcol con JWT. Las claves del proveedor se configuran en Edge Functions > Secrets. No se confirma inferencia Groq hasta recibir una respuesta real. El APK de CI no lleva configuración de Supabase; instalar desde VS Code con secureapp.config.json. Comprueba que su URL corresponde al proyecto xsbrwkxptxqnfdzvygwl antes de iniciar sesión.

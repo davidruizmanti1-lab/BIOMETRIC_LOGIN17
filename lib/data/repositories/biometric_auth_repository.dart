@@ -13,7 +13,12 @@ class BiometricAuthRepository implements AuthRepository {
   @override
   Future<bool> isDeviceSupported() async {
     try {
-      return await _auth.isDeviceSupported() || await _auth.canCheckBiometrics;
+      if (await _auth.isDeviceSupported()) return true;
+    } catch (_) {
+      // Algunos fabricantes reportan las capacidades por separado.
+    }
+    try {
+      return await _auth.canCheckBiometrics;
     } catch (_) {
       return false;
     }
@@ -31,9 +36,8 @@ class BiometricAuthRepository implements AuthRepository {
   @override
   Future<AuthResult> authenticate({required bool biometricOnly}) async {
     try {
-      if (!await isDeviceSupported()) {
-        return const AuthResult(AuthStatus.notSupported, AppStrings.notSupported);
-      }
+      // El diálogo nativo es la fuente de verdad: evita rechazar el acceso
+      // por una consulta de capacidades desactualizada.
       if (biometricOnly && !await hasEnrolledBiometrics()) {
         return const AuthResult(AuthStatus.notEnrolled, AppStrings.notEnrolled);
       }

@@ -9,9 +9,14 @@ import 'package:flutter_test/flutter_test.dart';
 class DeviceAuth implements AuthRepository {
   AuthResult result = const AuthResult(AuthStatus.success);
   int calls = 0;
+  bool supportError = false;
+  void Function()? onAuthenticate;
 
   @override
-  Future<bool> isDeviceSupported() async => true;
+  Future<bool> isDeviceSupported() async {
+    if (supportError) throw StateError('Sensor temporalmente no disponible');
+    return true;
+  }
 
   @override
   Future<bool> hasEnrolledBiometrics() async => true;
@@ -19,6 +24,7 @@ class DeviceAuth implements AuthRepository {
   @override
   Future<AuthResult> authenticate({required bool biometricOnly}) async {
     calls++;
+    onAuthenticate?.call();
     return result;
   }
 }
@@ -98,5 +104,41 @@ void main() {
     accounts.pending!.complete();
     expect(await attempt, isFalse);
     expect(controller.isAuthenticated, isFalse);
+  });
+  test('Detecta huellas aunque falle la consulta de soporte', () async {
+    device.supportError = true;
+    await controller.init();
+    expect(controller.hasBiometrics, isTrue);
+    expect(controller.isSupported, isTrue);
+  });
+
+  test('Espera el regreso de Android al primer plano tras biometría', () async {
+    var foreground = true;
+    final mobile = AuthController(device, accounts, isForeground: () => foreground);
+    addTearDown(mobile.dispose);
+    device.onAuthenticate = () {
+      foreground = false;
+      Timer(const Duration(milliseconds: 100), () => foreground = true);
+    };
+    await mobile.init();
+    final result = await mobile.login(email: 'student@example.com',
+      password: 'test-only', biometricOnly: true);
+    expect(result, isTrue);
+    expect(accounts.calls, 1);
+  });
+
+  test('Cerrar sesión mientras regresa el diálogo impide el acceso remoto', () async {
+    var foreground = true;
+    final mobile = AuthController(device, accounts, isForeground: () => foreground);
+    addTearDown(mobile.dispose);
+    device.onAuthenticate = () => foreground = false;
+    await mobile.init();
+    final attempt = mobile.login(email: 'student@example.com',
+      password: 'test-only', biometricOnly: true);
+    await Future<void>.delayed(Duration.zero);
+    mobile.logout();
+    foreground = true;
+    expect(await attempt, isFalse);
+    expect(accounts.calls, 0);
   });
 }

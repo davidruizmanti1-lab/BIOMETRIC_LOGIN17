@@ -66,16 +66,32 @@ class AuthController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _isSupported = await _repository.isDeviceSupported().timeout(const Duration(seconds: 5));
-      _hasBiometrics = await _repository.hasEnrolledBiometrics().timeout(const Duration(seconds: 5));
-    } catch (_) {
-      _isSupported = false;
-      _hasBiometrics = false;
+      _isSupported = await _detect(_repository.isDeviceSupported);
+      _hasBiometrics = await _detect(_repository.hasEnrolledBiometrics);
+      _isSupported = _isSupported || _hasBiometrics;
     } finally {
       _initializing = false;
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<bool> _detect(Future<bool> Function() check) async {
+    try {
+      return await check().timeout(const Duration(seconds: 5));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Android puede devolver el resultado antes de restaurar el estado resumed.
+  Future<bool> _waitForForeground(int revision) async {
+    for (var attempt = 0; attempt < 40; attempt++) {
+      if (_disposed || revision != _revision) return false;
+      if (_isForeground()) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    return false;
   }
 
   Future<bool> login({
@@ -84,6 +100,7 @@ class AuthController extends ChangeNotifier {
     required bool biometricOnly,
   }) async {
     if (_disposed || _isLoading || _isAuthenticated) return false;
+    if (!_isForeground()) return false;
     if (!isConfigured || email.trim().isEmpty || password.isEmpty) {
       _error = !isConfigured ? 'Configura Supabase antes de ingresar.' : 'Completa tus credenciales.';
       notifyListeners();
@@ -99,9 +116,13 @@ class AuthController extends ChangeNotifier {
     try {
       final result = await _repository.authenticate(biometricOnly: biometricOnly);
       _checkingBiometrics = false;
-      if (revision != _revision || !_isForeground()) return false;
+      if (revision != _revision) return false;
       if (!result.isSuccess) {
         _error = result.message ?? 'No se pudo verificar el dispositivo.';
+        return false;
+      }
+      if (!await _waitForForeground(revision)) {
+        if (revision == _revision) _error = 'Vuelve a abrir la aplicación e intenta de nuevo.';
         return false;
       }
       await _accounts.registerAccess(email: email.trim(), password: password);

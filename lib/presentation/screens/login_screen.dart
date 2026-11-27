@@ -38,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     final auth = context.read<AuthController>();
+    if (auth.isLoading) return;
     final password = _password.text;
     _password.clear();
     FocusScope.of(context).unfocus();
@@ -52,9 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(body: SafeArea(child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: LayoutBuilder(builder: (context, box) {
-        final showHero = box.maxHeight > 610 && !keyboard;
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (showHero) Expanded(child: ClipRRect(
+        final showHero = box.maxHeight > 720 && !keyboard;
+        return SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          if (showHero) SizedBox(height: 230, child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: Stack(fit: StackFit.expand, children: [
               Image.asset('assets/images/velero/galeria-balcon.webp', fit: BoxFit.cover),
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ]),
           )),
           if (showHero) const SizedBox(height: 20)
-          else if (!keyboard && box.maxHeight > 420) ...[
+          else if (!keyboard && box.maxHeight > 500) ...[
             const Center(child: VeleroBrand(size: 100)),
             const SizedBox(height: 12),
           ],
@@ -95,18 +96,18 @@ class _LoginScreenState extends State<LoginScreen> {
           else if (keyboard) FilledButton(onPressed: () => FocusScope.of(context).unfocus(), child: const Text('Listo'))
           else ...[
             FilledButton.icon(onPressed: auth.isLoading || !auth.hasBiometrics || !auth.isConfigured ? null : () => _login(true),
-              icon: const Icon(Icons.fingerprint), label: const Text('Ingresar con biometría')),
+              icon: const Icon(Icons.fingerprint), label: const Text('Ingresar con huella o rostro')),
             TextButton(onPressed: auth.isLoading || !auth.isSupported || !auth.isConfigured ? null : () => _login(false),
-              child: const Text('Usar seguridad del dispositivo')),
+              child: const Text('Usar PIN o patrón del dispositivo')),
             TextButton(onPressed: auth.isLoading ? null : () => setState(() { _step = false; _password.clear(); _error = null; }), child: const Text('Cambiar correo')),
           ],
           if (auth.isLoading) const LinearProgressIndicator(),
           if (_step && !keyboard && !auth.isConfigured) const Text('Configura Supabase antes de ingresar.'),
           if (_step && !keyboard && auth.isConfigured && !auth.hasBiometrics) const Text('Registra una huella o usa la seguridad del dispositivo.', style: TextStyle(fontSize: 12)),
-          if (_step && !keyboard && !auth.isLoading && !auth.isSupported)
+          if (_step && !keyboard && !auth.isLoading && (!auth.isSupported || !auth.hasBiometrics))
             TextButton.icon(onPressed: auth.init, icon: const Icon(Icons.refresh), label: const Text('Volver a detectar biometría')),
           if (box.maxHeight > 420 && !keyboard) const Padding(padding: EdgeInsets.only(top: 10), child: Text('Acceso privado · verificación local y Supabase', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: VeleroTheme.teal))),
-        ]);
+        ]));
       }),
     )));
   }

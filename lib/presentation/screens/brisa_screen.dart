@@ -67,7 +67,7 @@ class _BrisaScreenState extends State<BrisaScreen> {
       _history[_history.length - 1] = (
         q,
         BrisaFaq.answer(q, topic: confirmed ? topic : null),
-        confirmed ? 'IA en línea · guía autorizada' : 'Guía local · IA no disponible',
+        confirmed ? 'IA en línea · guía autorizada' : 'Guía local · revisa conexión, sesión o configuración del servidor',
       );
       _busy = false;
     });
@@ -99,7 +99,7 @@ class _BrisaScreenState extends State<BrisaScreen> {
               value: _online,
               onChanged: _busy ? null : (value) => setState(() => _online = value),
             )
-          else const Text('Modo local · IA del servidor sin habilitar', style: TextStyle(fontSize: 12)),
+          else const Text('Modo local · activa BRISA en la configuración de compilación y vuelve a iniciar sesión.', style: TextStyle(fontSize: 12)),
         ],
         if (_busy) const LinearProgressIndicator(),
         const SizedBox(height: 6),
