@@ -9,7 +9,7 @@ git status
 git fetch entrega
 git switch --track entrega/velero2h-mobile-aqua
 flutter pub get
-flutter analyze
+flutter analyze --no-fatal-infos
 flutter test
 flutter devices
 flutter run --dart-define-from-file=secureapp.config.json

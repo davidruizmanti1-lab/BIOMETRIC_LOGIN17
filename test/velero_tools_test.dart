@@ -6,6 +6,7 @@ import 'package:biometric_login/domain/services/velero_gallery.dart';
 void main() {
   test('Los gastos se reparten sin perder pesos', () {
     expect(TravelTools.split(10001, 3), [3334, 3334, 3333]);
+    expect(TravelTools.cop(1250000), r'$1.250.000 COP');
     expect(() => TravelTools.split(100, 0), throwsArgumentError);
   });
   test('El itinerario respeta duración y preferencia', () {
