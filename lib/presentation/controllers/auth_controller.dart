@@ -100,7 +100,11 @@ class AuthController extends ChangeNotifier {
     required bool biometricOnly,
   }) async {
     if (_disposed || _isLoading || _isAuthenticated) return false;
-    if (!_isForeground()) return false;
+    if (!_isForeground()) {
+      _error = 'La aplicación no está activa. Vuelve a intentarlo.';
+      notifyListeners();
+      return false;
+    }
     if (!isConfigured || email.trim().isEmpty || password.isEmpty) {
       _error = !isConfigured ? 'Configura Supabase antes de ingresar.' : 'Completa tus credenciales.';
       notifyListeners();

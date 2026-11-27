@@ -57,3 +57,6 @@ La detección biométrica es orientativa, no una condición que sustituya al di�
 
 ## V2.8 — escalabilidad
 Índice de acceso aplicado en Supabase, comprobaciones SQL y skill de escalabilidad. Galería oculta categorías sin recursos y reduce memoria de vista previa, sin reducir el original al ampliar. Ver docs/SCALABILITY.md. Compilación nueva pendiente; no se garantiza capacidad concurrente sin pruebas.
+
+## V2.8.1 — acceso en Infinix
+Tras instalación V2.8 el usuario informa que los toques y el teclado no responden. El login se simplifica a una única pantalla con nodos de foco estables, campos permanentes y desplazamiento manual; se evita reconstruir la estructura del formulario cuando aparece el teclado. Se conserva autenticación nativa y Supabase. Se añade prueba de interacción simulada con teclado y autenticación. La causa física no está confirmada; revisar también debugger, registros Android y modo de renderizado si persiste. No se deshabilita FLAG_SECURE.

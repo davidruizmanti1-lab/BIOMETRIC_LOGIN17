@@ -6,113 +6,121 @@ import '../widgets/velero_brand.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _form = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  bool _step = false;
-  String? _error;
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
-  void _next() {
-    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(_email.text.trim())) {
-      setState(() => _error = 'Escribe un correo válido.');
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    setState(() { _step = true; _error = null; });
-  }
-
   Future<void> _login(bool biometricOnly) async {
-    if (_password.text.isEmpty) {
-      setState(() => _error = 'Escribe tu contraseña.');
-      return;
-    }
     final auth = context.read<AuthController>();
-    if (auth.isLoading) return;
+    if (auth.isLoading || !(_form.currentState?.validate() ?? false)) return;
+    final email = _email.text.trim();
     final password = _password.text;
-    _password.clear();
     FocusScope.of(context).unfocus();
-    setState(() => _error = null);
-    await auth.login(email: _email.text.trim(), password: password, biometricOnly: biometricOnly);
+    _password.clear();
+    await auth.login(email: email, password: password, biometricOnly: biometricOnly);
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return Scaffold(body: SafeArea(child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: LayoutBuilder(builder: (context, box) {
-        final showHero = box.maxHeight > 720 && !keyboard;
-        return SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (showHero) SizedBox(height: 230, child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: Stack(fit: StackFit.expand, children: [
-              Image.asset('assets/images/velero/galeria-balcon.webp', fit: BoxFit.cover),
-              const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Color(0x22073B50), Color(0xE6073B50)],
-              ))),
-              const Positioned(left: 20, bottom: 20, right: 20, child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  VeleroBrand(size: 76),
-                  SizedBox(height: 10),
-                  Text('Velero2H', style: TextStyle(color: Colors.white, fontSize: 36, fontFamily: 'serif')),
-                  Text('Tu escape al Caribe', style: TextStyle(color: Colors.white)),
-                ],
-              )),
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Form(
+            key: _form,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const Center(child: VeleroBrand(size: 82)),
+              const SizedBox(height: 10),
+              const Text('Velero2H', textAlign: TextAlign.center,
+                style: TextStyle(color: VeleroTheme.ocean, fontSize: 32,
+                  fontFamily: 'serif', fontWeight: FontWeight.bold)),
+              const Text('Tu escape al Caribe', textAlign: TextAlign.center,
+                style: TextStyle(color: VeleroTheme.teal)),
+              const SizedBox(height: 20),
+              Text('Bienvenido a bordo', style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 6),
+              const Text('Ingresa tu cuenta y verifica tu identidad.'),
+              const SizedBox(height: 18),
+              TextFormField(
+                key: const ValueKey('login-email'),
+                controller: _email,
+                focusNode: _emailFocus,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autocorrect: false,
+                enableSuggestions: false,
+                enabled: !auth.checkingBiometrics,
+                onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+                decoration: const InputDecoration(labelText: 'Correo electrónico',
+                  prefixIcon: Icon(Icons.email_outlined)),
+                validator: (value) => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+                    .hasMatch(value?.trim() ?? '') ? null : 'Escribe un correo válido.',
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                key: const ValueKey('login-password'),
+                controller: _password,
+                focusNode: _passwordFocus,
+                obscureText: true,
+                autocorrect: false,
+                enableSuggestions: false,
+                textInputAction: TextInputAction.done,
+                enabled: !auth.checkingBiometrics,
+                onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
+                decoration: const InputDecoration(labelText: 'Contraseña',
+                  prefixIcon: Icon(Icons.lock_outline)),
+                validator: (value) => (value?.isEmpty ?? true) ? 'Escribe tu contraseña.' : null,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                key: const ValueKey('login-biometric'),
+                onPressed: auth.isLoading || !auth.isConfigured ? null : () => _login(true),
+                icon: const Icon(Icons.fingerprint),
+                label: const Text('Ingresar con huella o rostro'),
+              ),
+              TextButton(
+                onPressed: auth.isLoading || !auth.isConfigured ? null : () => _login(false),
+                child: const Text('Usar seguridad del dispositivo'),
+              ),
+              if (auth.error != null)
+                Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              if (!auth.isConfigured)
+                const Text('Falta la configuración de Supabase. Ejecuta la app con secureapp.config.json.'),
+              if (auth.isLoading) ...[
+                const LinearProgressIndicator(),
+                const SizedBox(height: 8),
+                Text(auth.checkingBiometrics ? 'Verificando identidad en Android…' : 'Comprobando conexión…'),
+              ],
+              if (!auth.hasBiometrics && !auth.isLoading)
+                TextButton.icon(onPressed: auth.init, icon: const Icon(Icons.refresh),
+                  label: const Text('Volver a detectar biometría')),
+              const SizedBox(height: 12),
+              const Text('Acceso privado · Velero2H', textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: VeleroTheme.teal)),
             ]),
-          )),
-          if (showHero) const SizedBox(height: 20)
-          else if (!keyboard && box.maxHeight > 500) ...[
-            const Center(child: VeleroBrand(size: 100)),
-            const SizedBox(height: 12),
-          ],
-          Text(_step ? 'Verifica tu acceso' : 'Bienvenido a bordo', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          if (_step) ...[
-            Text(_email.text.trim(), maxLines: 1, overflow: TextOverflow.ellipsis),
-            TextField(controller: _password, enabled: !auth.isLoading, obscureText: true,
-              autocorrect: false, enableSuggestions: false, textInputAction: TextInputAction.done,
-              onSubmitted: (_) => FocusScope.of(context).unfocus(),
-              decoration: const InputDecoration(labelText: 'Contraseña', prefixIcon: Icon(Icons.lock_outline))),
-          ] else TextField(controller: _email, keyboardType: TextInputType.emailAddress,
-            autocorrect: false, textInputAction: TextInputAction.next, onSubmitted: (_) => _next(),
-            decoration: const InputDecoration(labelText: 'Correo electrónico', prefixIcon: Icon(Icons.email_outlined))),
-          if (_error != null || (_step && auth.error != null))
-            Text(_error ?? auth.error!, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          const SizedBox(height: 10),
-          if (!_step) FilledButton(onPressed: _next, child: const Text('Continuar'))
-          else if (keyboard) FilledButton(onPressed: () => FocusScope.of(context).unfocus(), child: const Text('Listo'))
-          else ...[
-            FilledButton.icon(onPressed: auth.isLoading || !auth.isConfigured ? null : () => _login(true),
-              icon: const Icon(Icons.fingerprint), label: const Text('Ingresar con huella o rostro')),
-            TextButton(onPressed: auth.isLoading || !auth.isConfigured ? null : () => _login(false),
-              child: const Text('Usar PIN o patrón del dispositivo')),
-            TextButton(onPressed: auth.isLoading ? null : () => setState(() { _step = false; _password.clear(); _error = null; }), child: const Text('Cambiar correo')),
-          ],
-          if (auth.isLoading) ...[
-            const LinearProgressIndicator(),
-            const SizedBox(height: 8),
-            Text(auth.checkingBiometrics ? 'Esperando verificación de Android…' : 'Comprobando acceso y conexión…', textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-          ],
-          if (_step && !keyboard && !auth.isConfigured) const Text('Esta compilación necesita la configuración de Supabase. Ejecútala desde VS Code con secureapp.config.json.'),
-          if (_step && !keyboard && auth.isConfigured && !auth.hasBiometrics) const Text('No se detectaron huellas registradas. Puedes intentar la verificación nativa o revisar los ajustes de seguridad de Android.', style: TextStyle(fontSize: 12)),
-          if (_step && !keyboard && !auth.isLoading && (!auth.isSupported || !auth.hasBiometrics))
-            TextButton.icon(onPressed: auth.init, icon: const Icon(Icons.refresh), label: const Text('Volver a detectar biometría')),
-          if (box.maxHeight > 420 && !keyboard) const Padding(padding: EdgeInsets.only(top: 10), child: Text('Acceso privado · verificación local y Supabase', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: VeleroTheme.teal))),
-        ]));
-      }),
-    )));
+          ),
+        ),
+      ),
+    );
   }
 }
