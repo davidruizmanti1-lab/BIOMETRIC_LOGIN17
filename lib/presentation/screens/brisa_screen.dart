@@ -1,72 +1,156 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controllers/auth_controller.dart';
 import '../../core/velero_theme.dart';
 import '../../domain/services/brisa_faq.dart';
+import '../controllers/auth_controller.dart';
+import '../widgets/velero_brand.dart';
 
 class BrisaScreen extends StatefulWidget {
   const BrisaScreen({super.key});
+
   @override
   State<BrisaScreen> createState() => _BrisaScreenState();
 }
 
 class _BrisaScreenState extends State<BrisaScreen> {
   final _input = TextEditingController();
-  String _answer = 'Hola, soy BRISA. Pregúntame por estadías, reservas o planes en Santa Marta.';
+  final _history = <(String, String, String)>[];
   int _page = 0;
-  bool _online = false, _busy = false;
-  String _source = 'Guía local · sin internet';
-  static const _questions = ['¿Qué alojamientos ofrecen?', '¿Cuánto cuesta?', '¿Cómo reservo?', '¿Hay disponibilidad?', '¿Ofrecen tours?'];
-  @override
-  void dispose() { _input.dispose(); super.dispose(); }
+  bool _online = false;
+  bool _busy = false;
+  String? _notice;
 
-  Future<void> _ask(String q) async {
+  static const _suggestions = [
+    '¿Qué alojamientos ofrecen?',
+    '¿Tienen cocina y aire acondicionado?',
+    '¿Cuánto cuesta y cómo reservo?',
+    '¿Hay disponibilidad?',
+  ];
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  Future<void> _ask(String question) async {
     if (_busy) return;
+    final q = question.trim();
     FocusScope.of(context).unfocus();
     if (!BrisaFaq.safe(q)) {
-      setState(() { _answer = BrisaFaq.answer(q); _source = 'Privacidad'; });
+      setState(() => _notice = BrisaFaq.privacy);
       return;
     }
+
     final auth = context.read<AuthController>();
-    setState(() => _busy = true);
+    final useOnline = _online && auth.brisaAvailable;
+    setState(() {
+      _notice = null;
+      _busy = useOnline;
+      if (_history.length >= 12) _history.removeAt(0);
+      _history.add((q, BrisaFaq.answer(q), useOnline ? 'Guía local · consultando IA' : 'Guía local'));
+      _page = _history.length - 1;
+    });
     _input.clear();
+    if (!useOnline) return;
+
+    // La respuesta local permanece visible si el servidor no responde.
     String? topic;
-    if (_online) {
-      try { topic = await auth.askBrisa(q.trim()); } catch (_) {}
+    try {
+      topic = await auth.askBrisa(q);
+    } catch (_) {
+      topic = null;
     }
     if (!mounted) return;
+    final confirmed = BrisaFaq.validTopics(topic).isNotEmpty;
     setState(() {
-      _answer = BrisaFaq.answer(q, topic: topic);
-      _source = topic == null ? 'Guía local · sin internet' : 'IA semántica · respuestas verificadas';
+      _history[_history.length - 1] = (
+        q,
+        BrisaFaq.answer(q, topic: confirmed ? topic : null),
+        confirmed ? 'IA en línea · guía autorizada' : 'Guía local · IA no disponible',
+      );
       _busy = false;
     });
   }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, size) {
-    final compact = size.maxHeight < 390;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      if (!compact) const ListTile(contentPadding: EdgeInsets.zero, leading: CircleAvatar(backgroundColor: VeleroTheme.teal, foregroundColor: Colors.white, child: Icon(Icons.waves)), title: Text('BRISA', style: TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('Tu concierge de viaje')),
-      Expanded(child: Container(
-        decoration: BoxDecoration(color: VeleroTheme.water, borderRadius: BorderRadius.circular(24)),
-        padding: const EdgeInsets.all(16),
-        child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_source, textAlign: TextAlign.center, style: const TextStyle(color: VeleroTheme.teal, fontSize: 12)),
-          const SizedBox(height: 8),
-          Flexible(child: Text(_answer, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, height: 1.35))),
-        ])),
-      )),
-      if (!compact && context.watch<AuthController>().brisaAvailable)
-        SwitchListTile(dense: true, contentPadding: EdgeInsets.zero, title: const Text('IA en línea (opcional)'), subtitle: const Text('Envía únicamente preguntas generales.'), value: _online, onChanged: _busy ? null : (v) => setState(() => _online = v)),
-      if (!compact) Row(children: [
-        IconButton(tooltip: 'Anterior', onPressed: () => setState(() => _page = (_page + _questions.length - 1) % _questions.length), icon: const Icon(Icons.chevron_left)),
-        Expanded(child: TextButton(onPressed: () => _ask(_questions[_page]), child: Text(_questions[_page]))),
-        IconButton(tooltip: 'Siguiente', onPressed: () => setState(() => _page = (_page + 1) % _questions.length), icon: const Icon(Icons.chevron_right)),
-      ]),
-      const SizedBox(height: 8),
-      TextField(controller: _input, enabled: !_busy, maxLength: 300, textInputAction: TextInputAction.send, onSubmitted: _ask,
-        decoration: InputDecoration(hintText: 'Pregúntale a BRISA', counterText: '', suffixIcon: IconButton(tooltip: 'Enviar', onPressed: _busy ? null : () => _ask(_input.text), icon: const Icon(Icons.send_rounded)))),
-      if (_busy) const LinearProgressIndicator(),
-    ]);
-  });
+  Widget build(BuildContext context) {
+    final available = context.watch<AuthController>().brisaAvailable;
+    final latest = _history.isEmpty ? null : _history[_page];
+    return LayoutBuilder(builder: (context, size) {
+      final compact = size.maxHeight < 400;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (!compact) ...[
+          Row(children: [
+            const VeleroBrand(size: 50),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('BRISA', style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700, color: VeleroTheme.ocean)),
+              const Text('Concierge privado · Velero2H', style: TextStyle(color: VeleroTheme.teal, fontSize: 12)),
+            ])),
+          ]),
+          const SizedBox(height: 10),
+          if (available)
+            SwitchListTile(
+              dense: true, contentPadding: EdgeInsets.zero,
+              title: const Text('IA en línea'),
+              subtitle: const Text('Envía solo preguntas generales al proveedor.'),
+              value: _online,
+              onChanged: _busy ? null : (value) => setState(() => _online = value),
+            )
+          else const Text('Modo local · IA del servidor sin habilitar', style: TextStyle(fontSize: 12)),
+        ],
+        if (_busy) const LinearProgressIndicator(),
+        const SizedBox(height: 6),
+        Expanded(child: Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 10 : 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(latest?.$3 ?? 'BIENVENIDO A BORDO', style: const TextStyle(
+                color: VeleroTheme.teal, fontWeight: FontWeight.w600, fontSize: 12)),
+              if (latest != null && !compact) ...[
+                const SizedBox(height: 6),
+                Text(latest.$1, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+              const SizedBox(height: 8),
+              Expanded(child: Center(child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: (size.maxWidth - 36).clamp(120.0, 600.0).toDouble(),
+                  child: Text(latest?.$2 ?? 'Hola, soy BRISA. Puedo orientarte sobre alojamientos, servicios, reservas y turismo en Santa Marta.',
+                    style: const TextStyle(fontSize: 16, height: 1.35), textAlign: TextAlign.center),
+                ),
+              ))),
+            ]),
+          ),
+        )),
+        if (!compact && _history.length > 1) Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          IconButton(tooltip: 'Consulta anterior', onPressed: _page > 0 ? () => setState(() => _page--) : null, icon: const Icon(Icons.chevron_left)),
+          Text((_page + 1).toString() + '/' + _history.length.toString()),
+          IconButton(tooltip: 'Consulta siguiente', onPressed: _page + 1 < _history.length ? () => setState(() => _page++) : null, icon: const Icon(Icons.chevron_right)),
+        ]),
+        if (!compact && _history.isEmpty) Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: DropdownButtonFormField<String>(
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Preguntas frecuentes', isDense: true),
+            items: [for (final q in _suggestions) DropdownMenuItem(value: q, child: Text(q, overflow: TextOverflow.ellipsis))],
+            onChanged: (q) { if (q != null) _ask(q); },
+          ),
+        ),
+        if (_notice != null) Text(_notice!, style: TextStyle(color: Theme.of(context).colorScheme.error), maxLines: 2),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _input, enabled: !_busy, maxLength: 300,
+          textInputAction: TextInputAction.send, onSubmitted: _ask,
+          decoration: InputDecoration(hintText: 'Pregúntale a BRISA', counterText: '',
+            suffixIcon: IconButton(tooltip: 'Enviar pregunta', onPressed: _busy ? null : () => _ask(_input.text), icon: const Icon(Icons.send_rounded))),
+        ),
+      ]);
+    });
+  }
 }
