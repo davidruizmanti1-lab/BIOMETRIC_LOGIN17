@@ -36,3 +36,6 @@ En el Supabase original, ejecutar la migración de cuota y desplegar la función
 
 ## V2.4
 CI anterior: Dart 3.10.0-290.4.beta no satisface >=3.10.0. Se cambia el SDK fijado a 3.50.1, sugerido por el propio solucionador. Comprobar las nuevas ejecuciones de Actions; la corrección no equivale a una compilación aprobada. Logo original del propietario, optimizado a WebP, incorporado en login, arranque, encabezado e icono Android. La galería incluye ampliación y el login permite reintentar la detección biométrica. El flujo de acceso remoto se conserva. Los datos de prueba y la configuración local de Supabase no se incluyen en Git.
+
+## V2.5
+La CI V2.4 aprobó 16 pruebas, pero AGP 9.1.0 bloqueó assembleDebug. Se cambia a AGP 9.1.1 sin desactivar validaciones. Gradle 9.3.1 conserva una advertencia de futura incompatibilidad; actualizar por separado tras comprobar compatibilidad. BRISA admite hasta dos temas y conserva su guía local. La IA en línea requiere despliegue en Supabase. Los avisos de Material de Flutter 3.50.1 quedan pendientes de una migración de dependencias verificada.

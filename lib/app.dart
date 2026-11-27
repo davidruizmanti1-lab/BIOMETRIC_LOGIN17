@@ -45,6 +45,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     return MaterialApp(
+      key: ValueKey(auth.isAuthenticated),
       title: 'Velero2H',
       debugShowCheckedModeBanner: false,
       theme: VeleroTheme.light,

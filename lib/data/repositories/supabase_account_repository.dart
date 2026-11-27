@@ -29,6 +29,7 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
         uri.host.endsWith('.supabase.co') &&
         uri.userInfo.isEmpty &&
         (uri.path.isEmpty || uri.path == '/') &&
+        (!uri.hasPort || uri.port == 443) &&
         !uri.hasQuery &&
         !uri.hasFragment &&
         publishableKey.startsWith('sb_publishable_');
@@ -130,8 +131,10 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
       final response = await _post(client, '/functions/v1/brisa', token: token, body: {'question': question});
       if (response.statusCode != 200 || _brisaToken != token) return null;
       final body = jsonDecode(response.body);
-      final topic = body is Map<String, dynamic> ? body['topic'] : null;
-      return topic is String ? topic : null;
+      if (body is! Map<String, dynamic>) return null;
+      final raw = body['topic'];
+      final topics = BrisaFaq.validTopics(raw is String ? raw : null);
+      return topics.isEmpty ? null : topics.join(',');
     } catch (_) { return null; } finally { client.close(); }
   }
 

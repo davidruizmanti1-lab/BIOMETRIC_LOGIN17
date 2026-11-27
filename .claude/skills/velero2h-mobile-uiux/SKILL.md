@@ -13,3 +13,9 @@ description: Revisa y mejora pantallas Flutter de Velero2H con identidad Aqua Lu
 6. No modifiques AuthController ni el flujo biométrico sin pruebas. No copies credenciales, JWT o datos privados al código. Mantén los permisos GPS bajo acción del usuario.
 7. BRISA solo responde hechos verificados; ninguna confirmación automática, pago ni precio inventado.
 8. Ejecuta flutter analyze, flutter test y compilación Android. Prueba en dispositivo físico las pantallas y estados de error. Informa qué pasó y qué no se comprobó; nunca declares una prueba exitosa sin evidencia.
+
+## Revisión de cada pantalla
+- Usa el emblema oficial, no sustitutos decorativos. Conserva fotos originales.
+- Valida 360x640, 390x844 y teclado abierto; divide contenido en páginas, no ocultes acciones.
+- En BRISA diferencia IA confirmada, modo local, errores y espera; prueba respuestas largas y pérdida de red.
+- Conserva 48 dp para acciones principales y contraste legible. Evita texto minúsculo y verifica escala de texto ampliada.
