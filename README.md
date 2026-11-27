@@ -1,4 +1,8 @@
-# SecureApp
+# Velero2H Mobile · Aqua Luxury
+
+Nueva edición móvil: [Guía de instalación y funciones](docs/VELERO2H_MOBILE.md).
+
+## Proyecto original y autenticación
 
 Proyecto académico de Desarrollo de Aplicaciones Móviles, David Ruiz y Karen Meneses. Universidad Pontificia Bolivariana, Seccional Bucaramanga.
 

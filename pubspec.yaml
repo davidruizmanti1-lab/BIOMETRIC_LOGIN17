@@ -1,26 +1,25 @@
-
 name: biometric_login
-description: Aplicacion de autenticacion biometrica
+description: Velero2H - alojamientos y experiencias en Santa Marta
 publish_to: 'none'
-version: 1.1.0+2
-
+version: 2.3.0+6
 environment:
   sdk: ">=3.10.0 <4.0.0"
   flutter: ">=3.38.0"
-
 dependencies:
   flutter:
     sdk: flutter
-
   local_auth: ^3.0.2
   provider: ^6.1.2
   http: ^1.5.0
-
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  geolocator: ^14.0.2
+  url_launcher: ^6.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^6.0.0
-
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/velero/

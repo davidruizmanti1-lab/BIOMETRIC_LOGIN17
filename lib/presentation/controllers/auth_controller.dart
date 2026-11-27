@@ -34,8 +34,8 @@ class AuthController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _isSupported = await _repository.isDeviceSupported();
-      _hasBiometrics = await _repository.hasEnrolledBiometrics();
+      _isSupported = await _repository.isDeviceSupported().timeout(const Duration(seconds: 5));
+      _hasBiometrics = await _repository.hasEnrolledBiometrics().timeout(const Duration(seconds: 5));
     } catch (_) {
       _isSupported = false;
       _hasBiometrics = false;

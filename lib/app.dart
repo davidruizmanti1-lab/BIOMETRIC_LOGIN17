@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/velero_theme.dart';
 import 'presentation/controllers/auth_controller.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
@@ -44,9 +45,9 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     return MaterialApp(
-      title: 'SecureApp',
+      title: 'Velero2H',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorSchemeSeed: const Color(0xFF254C79), useMaterial3: true),
+      theme: VeleroTheme.light,
       home: auth.initializing
           ? const SplashScreen()
           : auth.isAuthenticated
