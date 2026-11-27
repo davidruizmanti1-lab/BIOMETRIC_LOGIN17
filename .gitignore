@@ -55,3 +55,11 @@ app.*.map.json
 *.jks
 *.keystore
 /android/key.properties
+
+# Configuración local y credenciales
+**/.env
+**/.env.*
+**/key.properties
+**/local.properties
+/supabase/.temp/
+/diagnostico-infinix.txt

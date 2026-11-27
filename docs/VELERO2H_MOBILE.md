@@ -41,3 +41,6 @@ CI anterior: Dart 3.10.0-290.4.beta no satisface >=3.10.0. Se cambia el SDK fija
 La CI V2.4 aprobó 16 pruebas, pero AGP 9.1.0 bloqueó assembleDebug. Se cambia a AGP 9.1.1 sin desactivar validaciones. Gradle 9.3.1 conserva una advertencia de futura incompatibilidad; actualizar por separado tras comprobar compatibilidad. BRISA admite hasta dos temas y conserva su guía local. La IA en línea requiere despliegue en Supabase. Los avisos de Material de Flutter 3.50.1 quedan pendientes de una migración de dependencias verificada.
 
 BRISA muestra historial paginado de hasta 12 consultas por sesión, respuesta local inmediata, estado de IA y degradación explícita. Guía: [Activación de BRISA](BRISA_ACTIVACION.md).
+
+## V2.6 Secure Luxury
+Límite de 64 KiB por respuesta HTTP del cliente, cancelación de consulta BRISA al cerrar sesión, rechazo de respuestas tardías, validación de host HTTPS exacto y control de primer plano antes del acceso remoto. Nueva migración de cuota con sesión registrada, revocación y vencimiento a 30 minutos (requiere despliegue). Se conserva biometría, FLAG_SECURE, prohibición de HTTP y configuración fuera de Git. No se han ejecutado pruebas físicas ni desplegado migraciones desde ChatGPT.

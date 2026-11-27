@@ -37,6 +37,7 @@ class AuthController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _revision++;
+    _isAuthenticated = false;
     _closeRemote();
     super.dispose();
   }
@@ -98,7 +99,7 @@ class AuthController extends ChangeNotifier {
     try {
       final result = await _repository.authenticate(biometricOnly: biometricOnly);
       _checkingBiometrics = false;
-      if (revision != _revision) return false;
+      if (revision != _revision || !_isForeground()) return false;
       if (!result.isSuccess) {
         _error = result.message ?? 'No se pudo verificar el dispositivo.';
         return false;
