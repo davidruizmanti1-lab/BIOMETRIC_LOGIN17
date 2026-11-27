@@ -54,3 +54,6 @@ BRISA está desplegada en el proyecto velero2hcol con JWT. Las claves del provee
 
 ## V2.7.1 — acceso y diagnóstico físico
 La detección biométrica es orientativa, no una condición que sustituya al diálogo de Android. El usuario puede iniciar la verificación nativa aunque la detección previa sea negativa; una cancelación o un resultado fallido nunca habilita acceso remoto. Se añaden mensajes de estado en login, una prueba de regresión y un diagnóstico opcional de Infinix sin instalar. Ejecutar scripts/Verificar-Infinix.ps1 -SoloDiagnostico para comprobar configuración, Flutter y dispositivos físicos sin compilar ni instalar. No se muestran claves. La compilación CI sin configuración no permite iniciar sesión; reconstruir localmente con secureapp.config.json. La V2.7 original superó análisis y pruebas; comprobar por separado la compilación de este parche. No se han realizado pruebas físicas.
+
+## V2.8 — escalabilidad
+Índice de acceso aplicado en Supabase, comprobaciones SQL y skill de escalabilidad. Galería oculta categorías sin recursos y reduce memoria de vista previa, sin reducir el original al ampliar. Ver docs/SCALABILITY.md. Compilación nueva pendiente; no se garantiza capacidad concurrente sin pruebas.

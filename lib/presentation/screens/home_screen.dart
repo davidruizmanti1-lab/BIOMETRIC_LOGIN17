@@ -103,7 +103,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ]),
         Expanded(child: InteractiveViewer(
           minScale: 1, maxScale: 3,
-          child: Center(child: Image.asset(photo.asset, fit: BoxFit.contain)),
+          child: Center(child: Image.asset(photo.asset, fit: BoxFit.contain,
+            errorBuilder: (_, error, stack) => const Text('Foto no disponible', style: TextStyle(color: Colors.white)))),
         )),
         const Padding(padding: EdgeInsets.all(12), child: Text('Foto real · acerca con dos dedos', style: TextStyle(color: Colors.white70))),
       ])),
@@ -120,7 +121,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final photos = VeleroGallery.available(_assets, _category);
+    final categories = VeleroGallery.categories(_assets);
+    final category = categories.contains(_category) ? _category : PhotoCategory.all;
+    final photos = VeleroGallery.available(_assets, category);
     final photo = photos.isEmpty ? null : photos[_index % photos.length];
     return LayoutBuilder(builder: (context, box) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (box.maxHeight > 435) Container(
@@ -141,9 +144,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
       ),
       const SizedBox(height: 8),
       DropdownButtonFormField<PhotoCategory>(
-        initialValue: _category, isExpanded: true,
+        key: ValueKey(categories.map((item) => item.name).join(',')),
+        initialValue: category, isExpanded: true,
         decoration: const InputDecoration(labelText: 'Explorar espacios', isDense: true),
-        items: [for (final category in PhotoCategory.values) DropdownMenuItem(value: category, child: Text(_labels[category.index]))],
+        items: [for (final item in categories) DropdownMenuItem(value: item, child: Text(_labels[item.index]))],
         onChanged: (value) { if(value != null) setState(() { _category = value; _index = 0; }); },
       ),
       const SizedBox(height: 8),
@@ -153,6 +157,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ? const Center(child: Text('No hay fotos de esta categoría instaladas.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white)))
           : Stack(fit: StackFit.expand, children: [
             Image.asset(photo.asset, fit: BoxFit.contain, semanticLabel: photo.caption,
+              cacheWidth: (box.maxWidth * MediaQuery.devicePixelRatioOf(context)).round().clamp(320, 1200).toInt(),
               errorBuilder: (_, error, stack) => const Center(child: Text('Foto no disponible', style: TextStyle(color: Colors.white)))),
             Positioned(top: 8, left: 8, child: IconButton.filledTonal(
               tooltip: 'Ampliar fotografía', onPressed: () => _viewPhoto(photo), icon: const Icon(Icons.fullscreen))),

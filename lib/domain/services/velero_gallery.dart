@@ -33,6 +33,14 @@ abstract final class VeleroGallery {
     VeleroPhoto('dos_camas_07', 'Habitación · mesa auxiliar', PhotoCategory.bedroom),
     VeleroPhoto('cocina_03', 'Cocina · estufa y nevera', PhotoCategory.kitchen),
   ];
+  static List<PhotoCategory> categories(Set<String> assets) {
+    final installed = available(assets, PhotoCategory.all)
+        .map((photo) => photo.category).toSet();
+    return PhotoCategory.values.where((category) =>
+        category == PhotoCategory.all || installed.contains(category))
+        .toList(growable: false);
+  }
+
   static List<VeleroPhoto> available(Set<String> assets, PhotoCategory category) =>
     [...owner, ...website].where((p) => assets.contains(p.asset) &&
       (category == PhotoCategory.all || p.category == category)).toList(growable: false);

@@ -28,4 +28,14 @@ void main() {
     assets.add(VeleroGallery.owner[2].asset);
     expect(VeleroGallery.available(assets, PhotoCategory.bathroom).length, 1);
   });
+  test('Solo muestra categorías que contienen fotos instaladas', () {
+    final assets = VeleroGallery.website.map((p) => p.asset).toSet();
+    expect(VeleroGallery.categories(assets), [
+      PhotoCategory.all, PhotoCategory.bedroom, PhotoCategory.kitchen,
+      PhotoCategory.spaces,
+    ]);
+    assets.add(VeleroGallery.owner[2].asset);
+    expect(VeleroGallery.categories(assets), contains(PhotoCategory.bathroom));
+    expect(VeleroGallery.categories({}), [PhotoCategory.all]);
+  });
 }
