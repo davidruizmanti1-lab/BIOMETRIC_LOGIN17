@@ -31,6 +31,21 @@ class AuthController extends ChangeNotifier {
   bool get isConfigured => _accounts.isConfigured;
   String? get error => _error;
   BrisaSessionRepository? get _brisa => _accounts is BrisaSessionRepository ? _accounts as BrisaSessionRepository : null;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _revision++;
+    _closeRemote();
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
   bool get brisaAvailable => _isAuthenticated && (_brisa?.brisaAvailable ?? false);
 
   Future<String?> askBrisa(String q) async {
@@ -46,7 +61,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> init() async {
-    if (_isLoading) return;
+    if (_disposed || _isLoading) return;
     _isLoading = true;
     notifyListeners();
     try {
@@ -67,7 +82,7 @@ class AuthController extends ChangeNotifier {
     required String password,
     required bool biometricOnly,
   }) async {
-    if (_isLoading || _isAuthenticated) return false;
+    if (_disposed || _isLoading || _isAuthenticated) return false;
     if (!isConfigured || email.trim().isEmpty || password.isEmpty) {
       _error = !isConfigured ? 'Configura Supabase antes de ingresar.' : 'Completa tus credenciales.';
       notifyListeners();

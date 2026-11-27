@@ -65,7 +65,9 @@ class _VeleroMapScreenState extends State<VeleroMapScreen> {
           for (final point in _points) Marker(point: point.$2, width: 42, height: 42, child: const Icon(Icons.location_on, color: VeleroTheme.teal, size: 36)),
           if (_position != null) Marker(point: _position!, width: 36, height: 36, child: const Icon(Icons.my_location, color: Colors.blue)),
         ]),
-        const SimpleAttributionWidget(source: Text('© OpenStreetMap contributors')),
+        SimpleAttributionWidget(source: const Text('© OpenStreetMap contributors'), onTap: () async {
+          try { await launchUrl(Uri.https('www.openstreetmap.org', '/copyright'), mode: LaunchMode.externalApplication); } catch (_) {}
+        }),
       ],
     ))),
     const SizedBox(height: 8),
@@ -76,6 +78,6 @@ class _VeleroMapScreenState extends State<VeleroMapScreen> {
       const SizedBox(width: 8),
       Expanded(child: FilledButton.icon(onPressed: _route, icon: const Icon(Icons.directions), label: const Text('Ruta'))),
     ]),
-    const Text('La ubicación y la ruta pueden compartirse con el proveedor de mapas.', style: TextStyle(fontSize: 11)),
+    const Text('El GPS y las rutas pueden compartir datos con el proveedor de mapas.', style: TextStyle(fontSize: 11)),
   ]);
 }

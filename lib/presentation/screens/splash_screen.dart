@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/velero_theme.dart';
+import '../widgets/velero_brand.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -7,7 +8,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) => const Scaffold(
     backgroundColor: VeleroTheme.ocean,
     body: SafeArea(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.sailing_outlined, size: 82, color: VeleroTheme.gold),
+      VeleroBrand(size: 132),
       SizedBox(height: 18),
       Text('Velero2H', style: TextStyle(fontSize: 36, color: Colors.white, fontFamily: 'serif')),
       Text('SANTA MARTA · COLOMBIA', style: TextStyle(color: VeleroTheme.lightAqua, letterSpacing: 2, fontSize: 12)),

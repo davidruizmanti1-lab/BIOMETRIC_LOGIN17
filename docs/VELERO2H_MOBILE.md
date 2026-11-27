@@ -33,3 +33,6 @@ Paleta aguamarina, contraste de texto, una acción principal por pantalla, contr
 
 ## Activar IA opcional
 En el Supabase original, ejecutar la migración de cuota y desplegar la función brisa. Configurar BRISA_AI_API_KEY y BRISA_AI_MODEL como secretos de la función, nunca en Flutter. Añadir VELERO2H_BRISA_AI=true a secureapp.config.json y reconstruir. El modelo solo selecciona un identificador de respuesta; no inventa inventario ni precios. Si el servicio falla, la FAQ local sigue disponible. La pregunta general se envía al proveedor si se activa la opción; no enviar datos personales. Los límites se aplican por cuenta. No se ha desplegado ni probado la función real.
+
+## V2.4
+CI anterior: Dart 3.10.0-290.4.beta no satisface >=3.10.0. Se cambia el SDK fijado a 3.50.1, sugerido por el propio solucionador. Comprobar las nuevas ejecuciones de Actions; la corrección no equivale a una compilación aprobada. Logo original del propietario, optimizado a WebP, incorporado en login, arranque, encabezado e icono Android. La galería incluye ampliación y el login permite reintentar la detección biométrica. El flujo de acceso remoto se conserva. Los datos de prueba y la configuración local de Supabase no se incluyen en Git.

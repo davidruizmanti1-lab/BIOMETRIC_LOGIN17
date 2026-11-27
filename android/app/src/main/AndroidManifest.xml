@@ -6,7 +6,7 @@
     <application
         android:label="Velero2H"
         android:name="${applicationName}"
-        android:icon="@drawable/velero_launcher"
+        android:icon="@drawable/velero_brand"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:usesCleartextTraffic="false">

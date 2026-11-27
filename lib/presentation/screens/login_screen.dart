@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/velero_theme.dart';
 import '../controllers/auth_controller.dart';
+import '../widgets/velero_brand.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(body: SafeArea(child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: LayoutBuilder(builder: (context, box) {
-        final showHero = box.maxHeight > 540 && !keyboard;
+        final showHero = box.maxHeight > 610 && !keyboard;
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (showHero) Expanded(child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
@@ -63,14 +64,19 @@ class _LoginScreenState extends State<LoginScreen> {
               ))),
               const Positioned(left: 20, bottom: 20, right: 20, child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(Icons.sailing, color: VeleroTheme.lightAqua, size: 36),
+                  VeleroBrand(size: 76),
+                  SizedBox(height: 10),
                   Text('Velero2H', style: TextStyle(color: Colors.white, fontSize: 36, fontFamily: 'serif')),
                   Text('Tu escape al Caribe', style: TextStyle(color: Colors.white)),
                 ],
               )),
             ]),
           )),
-          if (showHero) const SizedBox(height: 20),
+          if (showHero) const SizedBox(height: 20)
+          else if (!keyboard && box.maxHeight > 420) ...[
+            const Center(child: VeleroBrand(size: 100)),
+            const SizedBox(height: 12),
+          ],
           Text(_step ? 'Verifica tu acceso' : 'Bienvenido a bordo', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (_step) ...[
@@ -97,6 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
           if (auth.isLoading) const LinearProgressIndicator(),
           if (_step && !keyboard && !auth.isConfigured) const Text('Configura Supabase antes de ingresar.'),
           if (_step && !keyboard && auth.isConfigured && !auth.hasBiometrics) const Text('Registra una huella o usa la seguridad del dispositivo.', style: TextStyle(fontSize: 12)),
+          if (_step && !keyboard && !auth.isLoading && !auth.isSupported)
+            TextButton.icon(onPressed: auth.init, icon: const Icon(Icons.refresh), label: const Text('Volver a detectar biometría')),
           if (box.maxHeight > 420 && !keyboard) const Padding(padding: EdgeInsets.only(top: 10), child: Text('Acceso privado · verificación local y Supabase', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: VeleroTheme.teal))),
         ]);
       }),

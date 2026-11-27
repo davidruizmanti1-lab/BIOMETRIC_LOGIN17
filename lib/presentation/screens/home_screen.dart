@@ -8,6 +8,7 @@ import '../controllers/auth_controller.dart';
 import 'travel_screens.dart';
 import 'velero_map_screen.dart';
 import 'brisa_screen.dart';
+import '../widgets/velero_brand.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,9 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       appBar: AppBar(title: Row(children: [
-        Image.asset('assets/images/velero/logo-velero2h.webp', height: 38, width: 54, fit: BoxFit.contain),
+        const VeleroBrand(size: 44),
         const SizedBox(width: 8),
-        const Text('Velero2H', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'serif')),
+        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Velero2H', style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'serif', fontSize: 22)),
+          Text('AGENCIA DE TURISMO', style: TextStyle(color: VeleroTheme.teal, fontSize: 9, letterSpacing: 1.3)),
+        ])),
       ]), actions: [
         IconButton(tooltip: 'Cerrar sesión', onPressed: context.read<AuthController>().logout, icon: const Icon(Icons.logout)),
       ]),
@@ -55,11 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // Las herramientas mantienen su estado dentro de la sesión.
   Widget _pane(int index, Widget child, double height) => Offstage(
     offstage: _tab != index,
-    child: TickerMode(enabled: _tab == index, child: OverflowBox(
+    child: ExcludeFocus(excluding: _tab != index, child: TickerMode(enabled: _tab == index, child: OverflowBox(
       minHeight: _tab == index ? height : 650,
       maxHeight: _tab == index ? height : 650,
       alignment: Alignment.topCenter, child: child,
-    )),
+    ))),
   );
 }
 
@@ -89,6 +93,23 @@ class _CatalogScreenState extends State<CatalogScreen> {
     } catch (_) { /* Las fotos de la web siguen disponibles. */ }
   }
 
+  void _viewPhoto(VeleroPhoto photo) {
+    showDialog<void>(context: context, builder: (context) => Dialog.fullscreen(
+      backgroundColor: VeleroTheme.ocean,
+      child: SafeArea(child: Column(children: [
+        Row(children: [
+          IconButton(color: Colors.white, tooltip: 'Cerrar foto', onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+          Expanded(child: Text(photo.caption, style: const TextStyle(color: Colors.white), maxLines: 2)),
+        ]),
+        Expanded(child: InteractiveViewer(
+          minScale: 1, maxScale: 3,
+          child: Center(child: Image.asset(photo.asset, fit: BoxFit.contain)),
+        )),
+        const Padding(padding: EdgeInsets.all(12), child: Text('Foto real · acerca con dos dedos', style: TextStyle(color: Colors.white70))),
+      ])),
+    ));
+  }
+
   Future<void> _open() async {
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -102,7 +123,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final photos = VeleroGallery.available(_assets, _category);
     final photo = photos.isEmpty ? null : photos[_index % photos.length];
     return LayoutBuilder(builder: (context, box) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      if (box.maxHeight > 370) Container(
+      if (box.maxHeight > 435) Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
@@ -111,9 +132,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
         child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('SANTA MARTA  /  COLOMBIA', style: TextStyle(color: VeleroTheme.lightAqua, fontSize: 10, letterSpacing: 2)),
           SizedBox(height: 4),
-          Text('Tu escape al Caribe', style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'serif', height: 1.05)),
+          Text('Tu escape al Caribe', style: TextStyle(fontSize: 26, color: Colors.white, fontFamily: 'serif', height: 1.05)),
           SizedBox(height: 8),
-          Text('Habitaciones, apartaestudios y experiencias.', style: TextStyle(color: Colors.white, fontSize: 12)),
+          Text('Estadías y experiencias a tu ritmo.', style: TextStyle(color: Colors.white, fontSize: 12)),
+          SizedBox(height: 9),
+          SizedBox(width: 42, height: 2, child: ColoredBox(color: VeleroTheme.gold)),
         ]),
       ),
       const SizedBox(height: 8),
@@ -129,7 +152,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
         child: ColoredBox(color: VeleroTheme.ocean, child: photo == null
           ? const Center(child: Text('No hay fotos de esta categoría instaladas.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white)))
           : Stack(fit: StackFit.expand, children: [
-            Image.asset(photo.asset, fit: BoxFit.contain, semanticLabel: photo.caption),
+            Image.asset(photo.asset, fit: BoxFit.contain, semanticLabel: photo.caption,
+              errorBuilder: (_, error, stack) => const Center(child: Text('Foto no disponible', style: TextStyle(color: Colors.white)))),
+            Positioned(top: 8, left: 8, child: IconButton.filledTonal(
+              tooltip: 'Ampliar fotografía', onPressed: () => _viewPhoto(photo), icon: const Icon(Icons.fullscreen))),
             Align(alignment: Alignment.centerLeft, child: IconButton.filledTonal(tooltip: 'Foto anterior', onPressed: () => setState(() => _index = (_index + photos.length - 1) % photos.length), icon: const Icon(Icons.chevron_left))),
             Align(alignment: Alignment.centerRight, child: IconButton.filledTonal(tooltip: 'Foto siguiente', onPressed: () => setState(() => _index = (_index + 1) % photos.length), icon: const Icon(Icons.chevron_right))),
             Positioned(top: 8, right: 8, child: DecoratedBox(decoration: BoxDecoration(color: VeleroTheme.ocean, borderRadius: BorderRadius.circular(14)), child: Padding(padding: const EdgeInsets.all(8), child: Text('${_index + 1}/${photos.length}', style: const TextStyle(color: Colors.white))))),
@@ -138,7 +164,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ),
       )),
       const SizedBox(height: 6),
-      const Text('Fotos reales · unidades y fechas por confirmar', style: TextStyle(fontSize: 11), textAlign: TextAlign.center),
+      const Text('Fotografías reales · fechas por confirmar', style: TextStyle(fontSize: 11), textAlign: TextAlign.center),
       FilledButton.icon(onPressed: _open, icon: const Icon(Icons.calendar_month), label: const Text('Consultar alojamiento y fechas')),
       OutlinedButton.icon(onPressed: widget.onBrisa, icon: const Icon(Icons.waves), label: const Text('Preguntar a BRISA')),
     ]));

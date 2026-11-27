@@ -98,6 +98,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final compact = box.maxHeight < 400;
     final total = _expenses.fold(0, (sum, item) => sum + item.$2);
     final split = TravelTools.split(total, _people);
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (!compact) ...[
         Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: VeleroTheme.ocean, borderRadius: BorderRadius.circular(22)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -118,7 +119,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       ]),
       if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
       FilledButton.icon(onPressed: _add, icon: const Icon(Icons.add), label: const Text('Registrar gasto')),
-      Expanded(child: Card(child: Center(child: _expenses.isEmpty
+      if (keyboard) const Spacer() else Expanded(child: Card(child: Center(child: _expenses.isEmpty
         ? const Text('Aún no has registrado gastos.')
         : Column(mainAxisSize: MainAxisSize.min, children: [
           Text('${_page + 1}/${_expenses.length} · ${_expenses[_page].$1}'),
