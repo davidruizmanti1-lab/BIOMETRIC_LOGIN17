@@ -91,8 +91,29 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
         '/auth/v1/token?grant_type=password',
         body: {'email': email, 'password': password},
       );
-      if (response.statusCode == 400 || response.statusCode == 401) {
-        throw const AccountException('Credenciales incorrectas o cuenta no habilitada.');
+      if (response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 403) {
+        // No mostrar cuerpos del servidor, claves, tokens ni credenciales.
+        String? code;
+        try {
+          final error = jsonDecode(response.body);
+          if (error is Map<String, dynamic>) {
+            final value = error['error_code'] ?? error['code'];
+            if (value is String) code = value;
+          }
+        } on FormatException {
+          // Una respuesta no JSON tampoco permite confirmar credenciales.
+        }
+        if (code == 'invalid_credentials' || code == 'email_not_confirmed' ||
+            code == 'user_banned') {
+          throw const AccountException('No se pudo validar la cuenta. Revisa el correo y la contraseña.');
+        }
+        if (code == 'email_provider_disabled') {
+          throw const AccountException('El acceso por correo no está habilitado en el servidor.');
+        }
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          throw const AccountException('Autenticación rechazada. Verifica la URL y la clave publicable de Supabase.');
+        }
+        throw const AccountException('Supabase rechazó la solicitud de acceso. Revisa la configuración y las credenciales.');
       }
       if (response.statusCode == 429) {
         throw const AccountException('Demasiados intentos. Intenta más tarde.');

@@ -60,3 +60,6 @@ La detección biométrica es orientativa, no una condición que sustituya al di�
 
 ## V2.8.1 — acceso en Infinix
 Tras instalación V2.8 el usuario informa que los toques y el teclado no responden. El login se simplifica a una única pantalla con nodos de foco estables, campos permanentes y desplazamiento manual; se evita reconstruir la estructura del formulario cuando aparece el teclado. Se conserva autenticación nativa y Supabase. Se añade prueba de interacción simulada con teclado y autenticación. La causa física no está confirmada; revisar también debugger, registros Android y modo de renderizado si persiste. No se deshabilita FLAG_SECURE.
+
+## V2.8.2 — diagnóstico de acceso
+Se distinguen errores de cuenta conocidos de rechazos HTTP de configuración, sin exponer respuestas crudas. El script Diagnosticar-Supabase.ps1 consulta únicamente Auth settings con la clave publicable; no envía contraseñas ni autentica al usuario. El acceso real requiere biometría física, credenciales válidas y registro RPC exitoso. No se modificaron cuentas ni permisos.
