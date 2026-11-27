@@ -63,3 +63,5 @@ app.*.map.json
 **/local.properties
 /supabase/.temp/
 /diagnostico-infinix.txt
+
+/secureapp.config.json.*

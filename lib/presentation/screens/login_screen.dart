@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
               if (auth.error != null)
                 Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               if (!auth.isConfigured)
-                const Text('Falta la configuración de Supabase. Ejecuta la app con secureapp.config.json.'),
+                const Text('Configuración de Supabase ausente o de otro proyecto. Ejecuta Configurar-Supabase.ps1 desde VS Code.'),
               if (auth.isLoading) ...[
                 const LinearProgressIndicator(),
                 const SizedBox(height: 8),

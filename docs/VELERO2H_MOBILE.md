@@ -63,3 +63,6 @@ Tras instalación V2.8 el usuario informa que los toques y el teclado no respond
 
 ## V2.8.2 — diagnóstico de acceso
 Se distinguen errores de cuenta conocidos de rechazos HTTP de configuración, sin exponer respuestas crudas. El script Diagnosticar-Supabase.ps1 consulta únicamente Auth settings con la clave publicable; no envía contraseñas ni autentica al usuario. El acceso real requiere biometría física, credenciales válidas y registro RPC exitoso. No se modificaron cuentas ni permisos.
+
+## V2.8.3 — configuración del proyecto
+Se confirmó que el equipo local apuntaba a un proyecto Supabase distinto. El punto de entrada de producción fija el host esperado y rechaza configuraciones de otro proyecto antes de enviar credenciales. El script Configurar-Supabase.ps1 comprueba Auth antes de guardar URL y clave publicable; conserva las otras opciones locales y una copia ignorada por Git. Se añade ejemplo sin claves y prueba de aislamiento. No se cambian usuarios, permisos ni migraciones. El acceso físico todavía debe verificarse.

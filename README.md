@@ -8,7 +8,18 @@ Proyecto académico de Desarrollo de Aplicaciones Móviles, David Ruiz y Karen M
 
 Aplicación Flutter para Android que combina autenticación local (huella, rostro o credencial del dispositivo, según el botón escogido) con una cuenta de Supabase Auth y un registro remoto privado. La aplicación no registra huellas, no contiene una lista de usuarios ni descarga la tabla de auditoría.
 
-## Instalación y ejecución
+## Conexión al proyecto Velero2H actual
+
+La app de esta rama solo admite el proyecto de producción `xsbrwkxptxqnfdzvygwl`. Las cuatro migraciones del módulo móvil ya fueron aplicadas allí. No repetirlas para solucionar errores de contraseña o conexión.
+
+1. Desde PowerShell en VS Code, ejecuta `powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Configurar-Supabase.ps1"`.
+2. Introduce la clave publicable del proyecto (Settings → API Keys). El script verifica Auth antes de guardar la configuración local, y no muestra ni registra la clave.
+3. Ejecuta `powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Diagnosticar-Supabase.ps1"`.
+4. Ejecuta `flutter run --dart-define-from-file=secureapp.config.json` y selecciona Android. Si el motor gráfico del teléfono presenta incompatibilidades, prueba `--no-enable-impeller` como diagnóstico.
+
+La configuración real y sus copias quedan fuera de Git. Las cuentas permanecen en Supabase Auth, no en el código fuente. El APK de CI no incorpora configuración. El acceso real solo se confirma después de la autenticación local y remota y de registrar la sesión.
+
+## Instalación y ejecución (referencia del proyecto académico original)
 
 1. Crear un proyecto Supabase dedicado. En SQL Editor ejecutar `supabase/migrations/202611240001_secureapp_access.sql` con el rol administrativo del proyecto. No añadir `secureapp_private` a los esquemas expuestos por la Data API.
 2. Ejecutar `supabase/tests/permissions.sql`. Las diez columnas deben devolver `true`.

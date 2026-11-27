@@ -11,6 +11,7 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
   final String url;
   final String publishableKey;
   final bool enableBrisa;
+  final String? expectedHost;
   String? _brisaToken;
   int _sessionRevision = 0;
   http.Client? _brisaClient;
@@ -20,6 +21,7 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
     required this.url,
     required this.publishableKey,
     this.enableBrisa = false,
+    this.expectedHost,
     http.Client Function()? clientFactory,
   }) : _clientFactory = clientFactory ?? http.Client.new;
 
@@ -28,6 +30,7 @@ class SupabaseAccountRepository implements AccountRepository, BrisaSessionReposi
     final uri = Uri.tryParse(url);
     return uri != null &&
         uri.scheme == 'https' &&
+        (expectedHost == null || uri.host == expectedHost) &&
         RegExp(r'^[a-z0-9-]+\.supabase\.co$').hasMatch(uri.host) &&
         uri.userInfo.isEmpty &&
         (uri.path.isEmpty || uri.path == '/') &&

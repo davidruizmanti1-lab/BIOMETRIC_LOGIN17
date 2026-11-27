@@ -20,6 +20,27 @@ void main() {
     }
   });
 
+  test('El proyecto incorrecto no recibe credenciales', () async {
+    var requests = 0;
+    final repo = SupabaseAccountRepository(
+      url: url, publishableKey: key,
+      expectedHost: 'xsbrwkxptxqnfdzvygwl.supabase.co',
+      clientFactory: () => MockClient((_) async {
+        requests++;
+        return http.Response('', 401);
+      }),
+    );
+    expect(repo.isConfigured, isFalse);
+    await expectLater(repo.registerAccess(email: 'test@example.com', password: 'test-only'),
+      throwsA(isA<AccountException>()));
+    expect(requests, 0);
+    expect(SupabaseAccountRepository(
+      url: 'https://xsbrwkxptxqnfdzvygwl.supabase.co',
+      publishableKey: key,
+      expectedHost: 'xsbrwkxptxqnfdzvygwl.supabase.co',
+    ).isConfigured, isTrue);
+  });
+
   test('Rechaza una respuesta de acceso excesiva', () async {
     final repo = SupabaseAccountRepository(
       url: url, publishableKey: key,
